@@ -1,11 +1,9 @@
 from src.monkey.token import TokenType
+from src.monkey.repl import start
 
 
 def main():
-    x = TokenType("INTEGER")
-
-    print(x)
-
+    start()
     return
 
 
