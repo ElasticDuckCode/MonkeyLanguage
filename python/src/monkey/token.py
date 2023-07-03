@@ -6,13 +6,6 @@ class TokenType(str):
     pass
 
 
-@dataclass
-class Token:
-    token_type: TokenType
-    literal: str
-
-
-# Define Constant TokenTypes
 ILLEGAL:   Final[TokenType] = "ILLEGAL"
 EOF:       Final[TokenType] = "EOF"
 IDENT:     Final[TokenType] = "INDENT"
@@ -27,3 +20,18 @@ LBRACE:    Final[TokenType] = "{"
 RBRACE:    Final[TokenType] = "}"
 FUNCTION:  Final[TokenType] = "FUNCTION"
 LET:       Final[TokenType] = "LET"
+
+KEYWORDS = {"fn": FUNCTION, "let": LET}
+
+
+@dataclass
+class Token:
+    token_type: TokenType
+    literal: str
+
+
+def lookup_ident(ident: str) -> TokenType:
+    if ident in KEYWORDS.keys():
+        return KEYWORDS[ident]
+    else:
+        return IDENT

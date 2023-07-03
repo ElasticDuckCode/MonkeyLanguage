@@ -12,6 +12,15 @@ class Lexer:
     def __post_init__(self) -> None:
         self.read_char()
 
+    def is_letter(self) -> bool:
+        lower = ord('a') <= self.ch <= ord('z')
+        upper = ord('A') <= self.ch <= ord('Z')
+        under = ord('_') == self.ch
+        return lower or upper or under
+
+    def is_number(self) -> bool:
+        return ord('0') <= self.ch <= ord('9')
+
     def read_char(self) -> None:
         if self.read_position >= len(self.input):
             self.ch = 0
@@ -20,43 +29,54 @@ class Lexer:
         self.position = self.read_position
         self.read_position += 1
 
-    def next_token(self) -> token.Token:
-        tok = None
-        match self.ch.to_bytes(1):
-            case b'=':
-                tok = token.Token(token.ASSIGN, chr(self.ch))
-            case b';':
-                tok = token.Token(token.SEMICOLON, chr(self.ch))
-            case b'(':
-                tok = token.Token(token.LPAREN, chr(self.ch))
-            case b')':
-                tok = token.Token(token.RPAREN, chr(self.ch))
-            case b',':
-                tok = token.Token(token.COMMA, chr(self.ch))
-            case b'+':
-                tok = token.Token(token.PLUS, chr(self.ch))
-            case b'{':
-                tok = token.Token(token.LBRACE, chr(self.ch))
-            case b'}':
-                tok = token.Token(token.RBRACE, chr(self.ch))
-            case b'\0':
-                tok = token.Token(token.EOF, "")
-            case _:
-                if self.is_letter():
-                    tok = token.Token(token.IDENT, self.read_identifier())
-                else:
-                    tok = token.Token(token.ILLEGAL, chr(self.ch))
-        self.read_char()
-        return tok
-
-    def is_letter(self) -> bool:
-        lower = ord('a') <= self.ch <= ord('z')
-        upper = ord('A') <= self.ch <= ord('Z')
-        under = ord('_') == self.ch
-        return lower or upper or under
+    def skip_whitespace(self) -> None:
+        while chr(self.ch) in [' ', '\t', '\n', '\r']:
+            self.read_char()
 
     def read_identifier(self) -> str:
         start = self.position
         while self.is_letter():
             self.read_char()
         return self.input[start:self.position]
+
+    def read_number(self) -> None:
+        start = self.position
+        while self.is_number():
+            self.read_char()
+        return self.input[start:self.position]
+
+    def next_token(self) -> token.Token:
+        tok = None
+        self.skip_whitespace()
+        match chr(self.ch):
+            case '=':
+                tok = token.Token(token.ASSIGN, chr(self.ch))
+            case ';':
+                tok = token.Token(token.SEMICOLON, chr(self.ch))
+            case '(':
+                tok = token.Token(token.LPAREN, chr(self.ch))
+            case ')':
+                tok = token.Token(token.RPAREN, chr(self.ch))
+            case ',':
+                tok = token.Token(token.COMMA, chr(self.ch))
+            case '+':
+                tok = token.Token(token.PLUS, chr(self.ch))
+            case '{':
+                tok = token.Token(token.LBRACE, chr(self.ch))
+            case '}':
+                tok = token.Token(token.RBRACE, chr(self.ch))
+            case '\0':
+                tok = token.Token(token.EOF, "")
+            case _:
+                if self.is_letter():
+                    ident = self.read_identifier()
+                    tok = token.Token(token.lookup_ident(ident), ident)
+                    return tok
+                elif self.is_number():
+                    number = self.read_number()
+                    tok = token.Token(token.INT, number)
+                    return tok
+                else:
+                    tok = token.Token(token.ILLEGAL, chr(self.ch))
+        self.read_char()
+        return tok
