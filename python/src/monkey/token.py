@@ -12,6 +12,14 @@ IDENT:     Final[TokenType] = "INDENT"
 INT:       Final[TokenType] = "INT"
 ASSIGN:    Final[TokenType] = "="
 PLUS:      Final[TokenType] = "+"
+MINUS:     Final[TokenType] = "-"
+BANG:      Final[TokenType] = "!"
+ASTERISK:  Final[TokenType] = "*"
+SLASH:     Final[TokenType] = "/"
+LT:        Final[TokenType] = "<"
+GT:        Final[TokenType] = ">"
+EQ:        Final[TokenType] = "=="
+NOT_EQ:    Final[TokenType] = "!="
 COMMA:     Final[TokenType] = ","
 SEMICOLON: Final[TokenType] = ";"
 LPAREN:    Final[TokenType] = "("
@@ -20,8 +28,22 @@ LBRACE:    Final[TokenType] = "{"
 RBRACE:    Final[TokenType] = "}"
 FUNCTION:  Final[TokenType] = "FUNCTION"
 LET:       Final[TokenType] = "LET"
+TRUE:      Final[TokenType] = "TRUE"
+FALSE:     Final[TokenType] = "FALSE"
+IF:        Final[TokenType] = "IF"
+ELSE:      Final[TokenType] = "ELSE"
+RETURN:    Final[TokenType] = "RETURN"
 
-KEYWORDS = {"fn": FUNCTION, "let": LET}
+
+KEYWORDS: Final[dict[TokenType]] = {
+    "fn": FUNCTION,
+    "let": LET,
+    "true": TRUE,
+    "false": FALSE,
+    "if": IF,
+    "else": ELSE,
+    "return": RETURN
+}
 
 
 @dataclass

@@ -29,6 +29,12 @@ class Lexer:
         self.position = self.read_position
         self.read_position += 1
 
+    def peak_char(self) -> int:
+        if self.read_position >= len(self.input):
+            return 0
+        else:
+            return ord(self.input[self.read_position])
+
     def skip_whitespace(self) -> None:
         while chr(self.ch) in [' ', '\t', '\n', '\r']:
             self.read_char()
@@ -50,7 +56,12 @@ class Lexer:
         self.skip_whitespace()
         match chr(self.ch):
             case '=':
-                tok = token.Token(token.ASSIGN, chr(self.ch))
+                if chr(self.peak_char()) == '=':
+                    ch = chr(self.ch)
+                    self.read_char()
+                    tok = token.Token(token.EQ, ch+chr(self.ch))
+                else:
+                    tok = token.Token(token.ASSIGN, chr(self.ch))
             case ';':
                 tok = token.Token(token.SEMICOLON, chr(self.ch))
             case '(':
@@ -61,6 +72,23 @@ class Lexer:
                 tok = token.Token(token.COMMA, chr(self.ch))
             case '+':
                 tok = token.Token(token.PLUS, chr(self.ch))
+            case '-':
+                tok = token.Token(token.MINUS, chr(self.ch))
+            case "!":
+                if chr(self.peak_char()) == '=':
+                    ch = chr(self.ch)
+                    self.read_char()
+                    tok = token.Token(token.NOT_EQ, ch+chr(self.ch))
+                else:
+                    tok = token.Token(token.BANG, chr(self.ch))
+            case "*":
+                tok = token.Token(token.ASTERISK, chr(self.ch))
+            case "/":
+                tok = token.Token(token.SLASH, chr(self.ch))
+            case "<":
+                tok = token.Token(token.LT, chr(self.ch))
+            case ">":
+                tok = token.Token(token.GT, chr(self.ch))
             case '{':
                 tok = token.Token(token.LBRACE, chr(self.ch))
             case '}':
