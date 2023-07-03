@@ -6,7 +6,7 @@ class TestToken(TestCase):
     def test_lexer_next_token(self):
 
         input = r"=+(){},;"
-        lex = lexer.new(input)
+        lex = lexer.Lexer(input)
 
         expected = [
             (token.ASSIGN, "="),
