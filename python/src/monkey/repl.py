@@ -5,7 +5,7 @@ import sys
 PROMPT: Final[str] = ">> "
 
 
-def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout):
+def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
 
     print(PROMPT, end="", flush=True, file=rout)
     user_input = rin.readline()
