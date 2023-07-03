@@ -1,4 +1,4 @@
-from monkey.token import Token, TokenType
+from src.monkey.token import TokenType
 
 
 def main():
