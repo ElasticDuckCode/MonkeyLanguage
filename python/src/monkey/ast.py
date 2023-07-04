@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 import src.monkey.token as token
@@ -27,7 +27,7 @@ class Expression(Node):
 class Program(Node):
     """Serves as the root node of the AST
     """
-    statements: List[Statement] = None
+    statements: List = field(default_factory=list)
 
     @property
     def token_literal(self) -> str:
@@ -39,8 +39,8 @@ class Program(Node):
 
 @dataclass
 class Identifier(Expression):
-    tok: token.Token
-    value: str
+    tok: token.Token = None
+    value: str = None
 
     def expression_node(self) -> None: return
 
@@ -51,9 +51,9 @@ class Identifier(Expression):
 
 @dataclass
 class LetStatement(Statement):
-    tok: token.Token
-    name: Identifier
-    value: Expression
+    tok: token.Token = None
+    name: Identifier = None
+    value: Expression = None
 
     def statement_node(self) -> None: return
 
