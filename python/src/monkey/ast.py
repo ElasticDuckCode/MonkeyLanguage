@@ -60,3 +60,15 @@ class LetStatement(Statement):
     @property
     def token_literal(self) -> str:
         return self.tok.literal
+
+
+@dataclass
+class ReturnStatement(Statement):
+    tok: token.Token = None
+    value: Expression = None
+
+    def statement_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List
 
 import src.monkey.ast as ast
@@ -40,6 +40,8 @@ class Parser:
     def parse_statement(self) -> ast.Statement:
         if self.curr_token.token_type == token.LET:
             return self.parse_let_statement()
+        elif self.curr_token.token_type == token.RETURN:
+            return self.parse_return_statement()
         else:
             return None
 
@@ -58,6 +60,13 @@ class Parser:
             self.next_token()
 
         return ast.LetStatement(tok, name)
+
+    def parse_return_statement(self) -> ast.ReturnStatement:
+        tok = self.curr_token
+        self.next_token()
+        while not self.is_curr_token(token.SEMICOLON):
+            self.next_token()
+        return ast.ReturnStatement(tok)
 
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t
