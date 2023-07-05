@@ -8,7 +8,10 @@ import src.monkey.token as token
 class Node(ABC):
     @property
     @abstractmethod
-    def token_literal() -> str: pass
+    def token_literal(self) -> str: pass
+    @property
+    @abstractmethod
+    def string(self) -> str: pass
 
 
 @dataclass
@@ -36,6 +39,13 @@ class Program(Node):
         else:
             return ""
 
+    @property
+    def string(self) -> str:
+        out = ""
+        for stmt in self.statements:
+            out += stmt.string
+        return out
+
 
 @dataclass
 class Identifier(Expression):
@@ -47,6 +57,10 @@ class Identifier(Expression):
     @property
     def token_literal(self) -> str:
         return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return self.value
 
 
 @dataclass
@@ -61,6 +75,17 @@ class LetStatement(Statement):
     def token_literal(self) -> str:
         return self.tok.literal
 
+    @property
+    def string(self) -> str:
+        out = ""
+        out += self.token_literal + " "
+        out += self.name.string + " "
+        out += "= "
+        if self.value is not None:
+            out += self.value.string
+        out += ";"
+        return out
+
 
 @dataclass
 class ReturnStatement(Statement):
@@ -72,3 +97,31 @@ class ReturnStatement(Statement):
     @property
     def token_literal(self) -> str:
         return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        out = ""
+        out += self.token_literal + " "
+        if self.value is not None:
+            out += self.value.string
+        out += ";"
+        return out
+
+
+@dataclass
+class ExpressionStatement(Statement):
+    tok: token.Token = None
+    expression: Expression = None
+
+    def statement_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        out = ""
+        if self.expression is not None:
+            out += self.expression.string
+        return out
