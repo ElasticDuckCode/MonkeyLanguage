@@ -64,6 +64,22 @@ class Identifier(Expression):
 
 
 @dataclass
+class IntegerLiteral(Expression):
+    tok: token.Token = None
+    value: int = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return self.tok.literal
+
+
+@dataclass
 class LetStatement(Statement):
     tok: token.Token = None
     name: Identifier = None
