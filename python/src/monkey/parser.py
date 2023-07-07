@@ -37,8 +37,10 @@ class Parser:
         self.infix_parse_fns = {}
         self._errors = []
 
-        self.register_prefix(token.IDENT, self.parse_identifier)
         self.register_prefix(token.INT, self.parse_integer_literal)
+        self.register_prefix(token.IDENT, self.parse_identifier)
+        self.register_prefix(token.BANG, self.parse_prefix_expression)
+        self.register_prefix(token.MINUS, self.parse_prefix_expression)
 
     @ property
     def errors(self):
@@ -82,6 +84,7 @@ class Parser:
 
     def parse_expression(self, precidence: int) -> ast.Expression:
         if self.curr_token.token_type not in self.prefix_parse_fns.keys():
+            self.missing_prefix_parse_fn_error(self.curr_token.token_type)
             return None
         else:
             prefix = self.prefix_parse_fns[self.curr_token.token_type]
@@ -118,9 +121,15 @@ class Parser:
             value = int(self.curr_token.literal)
             return ast.IntegerLiteral(self.curr_token, value)
         except ValueError:
-            msg = f"Could not parse {self.curr_token.literal} as integer."
-            self._errors.append(msg)
+            self.int_val_error()
             return None
+
+    def parse_prefix_expression(self) -> ast.Expression:
+        tok = self.curr_token
+        operator = self.curr_token.literal
+        self.next_token()
+        right = self.parse_expression(PREFIX)
+        return ast.PrefixExpression(tok, operator, right)
 
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t
@@ -141,4 +150,12 @@ class Parser:
     def peek_error(self, t: token.TokenType):
         msg = (f"Expected next token to be {t}, "
                f"not {self.peek_token.token_type}.")
+        self._errors.append(msg)
+
+    def int_val_error(self):
+        msg = f"Could not parse {self.curr_token.literal} as integer."
+        self._errors.append(msg)
+
+    def missing_prefix_parse_fn_error(self, t: token.TokenType):
+        msg = f"Missing prefix parse function for {t} found."
         self._errors.append(msg)

@@ -64,22 +64,6 @@ class Identifier(Expression):
 
 
 @dataclass
-class IntegerLiteral(Expression):
-    tok: token.Token = None
-    value: int = None
-
-    def expression_node(self) -> None: return
-
-    @property
-    def token_literal(self) -> str:
-        return self.tok.literal
-
-    @property
-    def string(self) -> str:
-        return self.tok.literal
-
-
-@dataclass
 class LetStatement(Statement):
     tok: token.Token = None
     name: Identifier = None
@@ -141,3 +125,36 @@ class ExpressionStatement(Statement):
         if self.expression is not None:
             out += self.expression.string
         return out
+
+
+@dataclass
+class IntegerLiteral(Expression):
+    tok: token.Token = None
+    value: int = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return self.tok.literal
+
+
+@dataclass
+class PrefixExpression(Expression):
+    tok: token.Token = None
+    operator: str = None
+    right: Expression = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return "(" + self.operator + self.right.string + ")"
