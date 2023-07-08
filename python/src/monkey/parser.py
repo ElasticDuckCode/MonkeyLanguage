@@ -16,7 +16,8 @@ precidences = {
     token.PLUS:     SUM,
     token.MINUS:    SUM,
     token.SLASH:    PRODUCT,
-    token.ASTERISK: PRODUCT
+    token.ASTERISK: PRODUCT,
+    token.LPAREN:   CALL
 }
 
 
@@ -65,6 +66,7 @@ class Parser:
         self.register_infix(token.NOT_EQ, self.parse_infix_expression)
         self.register_infix(token.LT, self.parse_infix_expression)
         self.register_infix(token.GT, self.parse_infix_expression)
+        self.register_infix(token.LPAREN, self.parse_call_expression)
 
     @ property
     def errors(self):
@@ -255,6 +257,27 @@ class Parser:
             return None
 
         return idents
+
+    def parse_call_expression(self, f: ast.Expression) -> ast.Expression:
+        tok = self.curr_token
+        args = self.parse_call_arguements()
+        return ast.CallExpression(tok, f, args)
+
+    def parse_call_arguements(self) -> ast.Expression:
+        args = []
+        if self.is_peek_token(token.RPAREN):
+            self.next_token()
+            return args
+        while True:
+            self.next_token()
+            args.append(self.parse_expression(LOWEST))
+            if not self.is_peek_token(token.COMMA):
+                break
+            else:
+                self.next_token()
+        if not self.expect_peek(token.RPAREN):
+            return None
+        return args
 
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t

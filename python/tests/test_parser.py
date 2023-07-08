@@ -203,10 +203,10 @@ class TestParser(TestCase):
             ("(5 + 5) * 2 * (5 + 5)", "(((5 + 5) * 2) * (5 + 5))"),
             ("-(5 + 5)", "(-(5 + 5))"),
             ("!(true == true)", "(!(true == true))"),
-            # ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
-            # ("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-            # "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"),
-            # ("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"),
+            ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
+            ("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+             "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"),
+            ("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"),
         ]
 
         for code, expected in code_examples:
@@ -303,6 +303,46 @@ class TestParser(TestCase):
             self.assertEqual(len(params), len(expected_params))
             for ident, expected_ident in zip(params, expected_params):
                 self.verify_literal_expression(ident, expected_ident)
+
+    def test_parser_call_expression(self):
+        code = "add(1, 2 * 3, 4 + 5);"
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        exp = stmt.expression
+        self.assertIsInstance(exp, ast.CallExpression)
+        self.verify_identifier(exp.function, "add")
+        self.assertEqual(len(exp.arguements), 3)
+        self.verify_literal_expression(exp.arguements[0], 1)
+        self.verify_infix_expression(exp.arguements[1], 2, "*", 3)
+        self.verify_infix_expression(exp.arguements[2], 4, "+", 5)
+
+    def test_parser_call_arguement_cases(self):
+        cases = [
+            ("add();", []),
+            ("add(x);", ["x"]),
+            ("add(x, y, z);", ["x", "y", "z"]),
+        ]
+        for code, expected_args in cases:
+            lex = lexer.Lexer(code)
+            par = parser.Parser(lex)
+            program = par.parse_program()
+            self.assertIsNotNone(program)
+            self.assertEqual(len(par.errors), 0, par.error_str)
+            self.assertEqual(len(program.statements), 1)
+            stmt = program.statements[0]
+            self.assertIsInstance(stmt, ast.ExpressionStatement)
+            self.assertIsInstance(stmt.expression, ast.CallExpression)
+            self.verify_identifier(stmt.expression.function, "add")
+            args = stmt.expression.arguements
+            self.assertEqual(len(args), len(expected_args))
+            for arg, expected_arg in zip(args, expected_args):
+                self.verify_literal_expression(arg, expected_arg)
 
 
 if __name__ == "__main__":

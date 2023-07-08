@@ -246,9 +246,26 @@ class FunctionLiteral(Expression):
 
     @property
     def string(self) -> str:
-        string = ""
-        string += self.tok.token_literal + "("
-        string += ",".join([p.string for p in self.parameters])
-        string += ")"
+        string = self.tok.token_literal
+        string += "(" + ", ".join([p.string for p in self.parameters]) + ")"
         string += self.body.string
+        return string
+
+
+@dataclass
+class CallExpression(Expression):
+    tok: token.Token = None
+    function: Expression = None
+    arguements: List[Expression] = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        string = self.function.string
+        string += "(" + ", ".join([a.string for a in self.arguements]) + ")"
         return string
