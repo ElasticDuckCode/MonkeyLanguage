@@ -191,4 +191,4 @@ class InfixExpression(Expression):
 
     @property
     def string(self) -> str:
-        return "(" + self.left.string + self.operator + self.right.string + ")"
+        return "(" + self.left.string + " " + self.operator + " " + self.right.string + ")"

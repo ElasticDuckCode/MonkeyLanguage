@@ -22,6 +22,8 @@ class TestParser(TestCase):
     def verify_literal_expression(self, exp: ast.Expression, expected):
         if isinstance(expected, int):
             self.verify_integer_literal(exp, expected)
+        elif isinstance(expected, bool):
+            self.verify_boolean(exp, expected)
         else:
             self.verify_identifier(exp, expected)
 
@@ -187,10 +189,10 @@ class TestParser(TestCase):
             ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
             ("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"),
             ("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
-            # ("true", "true"),
-            # ("false", "false"),
-            # ("3 > 5 == false", "((3 > 5) == false)"),
-            # ("3 < 5 == true", "((3 < 5) == true)"),
+            ("true", "true"),
+            ("false", "false"),
+            ("3 > 5 == false", "((3 > 5) == false)"),
+            ("3 < 5 == true", "((3 < 5) == true)"),
             # ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
             # ("(5 + 5) * 2", "((5 + 5) * 2)"),
             # ("2 / (5 + 5)", "(2 / (5 + 5))"),
@@ -210,6 +212,7 @@ class TestParser(TestCase):
             program = par.parse_program()
             self.assertIsNotNone(program)
             self.assertEqual(len(par.errors), 0, str(par.errors))
+            self.assertEqual(program.string, expected)
 
         return
 
