@@ -27,6 +27,16 @@ class TestParser(TestCase):
         else:
             self.verify_identifier(exp, expected)
 
+    def verify_let_statement(self, stmt: ast.LetStatement, name: str):
+        self.assertIsInstance(stmt, ast.LetStatement)
+        self.assertEqual(stmt.token_literal, "let")
+        self.assertEqual(stmt.name.value, name)
+        self.assertEqual(stmt.name.token_literal, name)
+
+    def verify_return_statement(self, stmt: ast.ReturnStatement):
+        self.assertIsInstance(stmt, ast.ReturnStatement)
+        self.assertEqual(stmt.token_literal, "return")
+
     def verify_prefix_expression(self, exp: ast.PrefixExpression, operator: str, right):
         self.assertIsInstance(exp, ast.PrefixExpression)
         self.assertEqual(exp.operator, operator)
@@ -38,7 +48,7 @@ class TestParser(TestCase):
         self.assertEqual(exp.operator, operator)
         self.verify_literal_expression(exp.right, right)
 
-    def test_parser_let_statement(self):
+    def test_parser_let_statement_identifiers(self):
         code = ("let x = 5;\n"
                 "let y = 10;\n"
                 "let foobar = 838383;\n")
@@ -74,7 +84,7 @@ class TestParser(TestCase):
         self.assertIsNotNone(program)
         self.assertEqual(len(par.errors), 4, par.error_str)
 
-    def test_parser_return_statement(self):
+    def test_parser_return_statement_identifiers(self):
         code = ("return 5;\n"
                 "return 10;\n"
                 "return 993322;\n")
@@ -343,6 +353,40 @@ class TestParser(TestCase):
             self.assertEqual(len(args), len(expected_args))
             for arg, expected_arg in zip(args, expected_args):
                 self.verify_literal_expression(arg, expected_arg)
+
+    def test_parser_let_statement(self):
+        cases = [
+            ("let x = 5;", ("x", 5)),
+            ("let y = true;", ("y", True)),
+            ("let foobar = y;", ("foobar", "y")),
+        ]
+        for code, expected in cases:
+            lex = lexer.Lexer(code)
+            par = parser.Parser(lex)
+            program = par.parse_program()
+            self.assertIsNotNone(program)
+            self.assertEqual(len(par.errors), 0, par.error_str)
+            self.assertEqual(len(program.statements), 1)
+            stmt = program.statements[0]
+            self.verify_let_statement(stmt, expected[0])
+            self.verify_literal_expression(stmt.value, expected[1])
+
+    def test_parser_return_statement(self):
+        cases = [
+            ("return 5;", 5),
+            ("return true;", True),
+            ("return foobar;", "foobar")
+        ]
+        for code, expected in cases:
+            lex = lexer.Lexer(code)
+            par = parser.Parser(lex)
+            program = par.parse_program()
+            self.assertIsNotNone(program)
+            self.assertEqual(len(par.errors), 0, par.error_str)
+            self.assertEqual(len(program.statements), 1)
+            stmt = program.statements[0]
+            self.verify_return_statement(stmt)
+            self.verify_literal_expression(stmt.value, expected)
 
 
 if __name__ == "__main__":
