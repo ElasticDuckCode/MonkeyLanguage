@@ -4,6 +4,11 @@ from src.monkey import lexer, parser, ast
 
 class TestParser(TestCase):
 
+    def verify_integer_literal(self, intlit: ast.IntegerLiteral, value: int):
+        self.assertIsInstance(intlit, ast.IntegerLiteral)
+        self.assertEqual(intlit.value, value)
+        self.assertEqual(intlit.token_literal, str(value))
+
     def test_parser_let_statement(self):
         code = ("let x = 5;\n"
                 "let y = 10;\n"
@@ -85,9 +90,7 @@ class TestParser(TestCase):
 
         stmt = program.statements[0]
         self.assertIsInstance(stmt, ast.ExpressionStatement)
-        self.assertIsInstance(stmt.expression, ast.IntegerLiteral)
-        self.assertEqual(stmt.expression.value, 5)
-        self.assertEqual(stmt.token_literal, "5")
+        self.verify_integer_literal(stmt.expression, 5)
 
     def test_parser_unary_prefix_expressions(self):
         prefix_tests = {
@@ -107,10 +110,7 @@ class TestParser(TestCase):
             self.assertIsInstance(exp, ast.PrefixExpression)
             self.assertEqual(exp.operator, prefix_tests[code][0])
             integ = exp.right
-            self.assertIsInstance(integ, ast.IntegerLiteral)
-            value = prefix_tests[code][1]
-            self.assertEqual(integ.value, value)
-            self.assertEqual(integ.token_literal, str(value))
+            self.verify_integer_literal(integ, prefix_tests[code][1])
 
     def test_parse_binary_infix_expressions(self):
         infix_tests = {
@@ -135,16 +135,10 @@ class TestParser(TestCase):
             exp = stmt.expression
             self.assertIsInstance(exp, ast.InfixExpression)
             integ = exp.left
-            self.assertIsInstance(integ, ast.IntegerLiteral)
-            value = infix_tests[code][0]
-            self.assertEqual(integ.value, value)
-            self.assertEqual(integ.token_literal, str(value))
+            self.verify_integer_literal(integ, infix_tests[code][0])
             self.assertEqual(exp.operator, infix_tests[code][1])
             integ = exp.right
-            self.assertIsInstance(integ, ast.IntegerLiteral)
-            value = infix_tests[code][2]
-            self.assertEqual(integ.value, value)
-            self.assertEqual(integ.token_literal, str(value))
+            self.verify_integer_literal(integ, infix_tests[code][2])
 
     def test_parser_infix_expression_precidence(self):
         code_examples = [
