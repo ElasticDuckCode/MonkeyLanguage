@@ -20,9 +20,9 @@ class TestParser(TestCase):
         self.assertEqual(exp.token_literal, value)
 
     def verify_literal_expression(self, exp: ast.Expression, expected):
-        if isinstance(expected, int):
+        if type(expected) == int:
             self.verify_integer_literal(exp, expected)
-        elif isinstance(expected, bool):
+        elif type(expected) == bool:
             self.verify_boolean(exp, expected)
         else:
             self.verify_identifier(exp, expected)
@@ -163,6 +163,9 @@ class TestParser(TestCase):
             "5 < 5": (5, "<", 5),
             "5 == 5": (5, "==", 5),
             "5 != 5": (5, "!=", 5),
+            "true == true": (True, "==", True),
+            "true != false": (True, "!=", False),
+            "false == false": (False, "==", False),
         }
         for code in infix_tests.keys():
             lex = lexer.Lexer(code)
