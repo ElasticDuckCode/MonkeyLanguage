@@ -53,6 +53,8 @@ class Parser:
         self.register_prefix(token.IDENT, self.parse_identifier)
         self.register_prefix(token.BANG, self.parse_prefix_expression)
         self.register_prefix(token.MINUS, self.parse_prefix_expression)
+        self.register_prefix(token.LPAREN, self.parse_group_expression)
+
         self.register_infix(token.PLUS, self.parse_infix_expression)
         self.register_infix(token.MINUS, self.parse_infix_expression)
         self.register_infix(token.SLASH, self.parse_infix_expression)
@@ -178,6 +180,13 @@ class Parser:
         self.next_token()
         right = self.parse_expression(precidence)
         return ast.InfixExpression(tok, left, operator, right)
+
+    def parse_group_expression(self) -> ast.Expression:
+        self.next_token()
+        exp = self.parse_expression(LOWEST)
+        if not self.expect_peek(token.RPAREN):
+            return None
+        return exp
 
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t
