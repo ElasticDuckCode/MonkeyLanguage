@@ -54,6 +54,8 @@ class Parser:
         self.register_prefix(token.BANG, self.parse_prefix_expression)
         self.register_prefix(token.MINUS, self.parse_prefix_expression)
         self.register_prefix(token.LPAREN, self.parse_group_expression)
+        self.register_prefix(token.IF, self.parse_if_expression)
+        self.register_prefix(token.FUNCTION, self.parse_function_literal)
 
         self.register_infix(token.PLUS, self.parse_infix_expression)
         self.register_infix(token.MINUS, self.parse_infix_expression)
@@ -67,6 +69,10 @@ class Parser:
     @ property
     def errors(self):
         return self._errors
+
+    @ property
+    def error_str(self):
+        return "\n".join(self._errors)
 
     def next_token(self) -> None:
         self.curr_token = self.peek_token
@@ -187,6 +193,68 @@ class Parser:
         if not self.expect_peek(token.RPAREN):
             return None
         return exp
+
+    def parse_if_expression(self) -> ast.Expression:
+        tok = self.curr_token
+        if not self.expect_peek(token.LPAREN):
+            return None
+        self.next_token()
+        condition = self.parse_expression(LOWEST)
+        if not self.expect_peek(token.RPAREN):
+            return None
+        if not self.expect_peek(token.LBRACE):
+            return None
+        consequence = self.parse_block_statement()
+        if self.is_peek_token(token.ELSE):
+            self.next_token()
+            if not self.expect_peek(token.LBRACE):
+                return None
+            alternative = self.parse_block_statement()
+        else:
+            alternative = None
+        return ast.IfExpression(tok, condition, consequence, alternative)
+
+    def parse_block_statement(self) -> ast.BlockStatement:
+        tok = self.curr_token
+        stmts = []
+        self.next_token()
+        while not self.is_curr_token(token.RBRACE) and not self.is_curr_token(token.EOF):
+            stmt = self.parse_statement()
+            if stmt is not None:
+                stmts.append(stmt)
+            self.next_token()
+        return ast.BlockStatement(tok, stmts)
+
+    def parse_function_literal(self) -> ast.Expression:
+        tok = self.curr_token
+        if not self.expect_peek(token.LPAREN):
+            return None
+        params = self.parse_function_params()
+        if not self.expect_peek(token.LBRACE):
+            return None
+        body = self.parse_block_statement()
+        return ast.FunctionLiteral(tok, params, body)
+
+    def parse_function_params(self) -> List[ast.Identifier]:
+        idents = []
+
+        if self.is_peek_token(token.RPAREN):
+            self.next_token()
+            return idents
+
+        while True:
+            self.next_token()
+            ident = ast.Identifier(self.curr_token, self.curr_token.literal)
+            idents.append(ident)
+            if not self.is_peek_token(token.COMMA):
+                break
+            else:
+                self.next_token()
+
+        if not self.expect_peek(token.RPAREN):
+            return None
+
+        return idents
 
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t

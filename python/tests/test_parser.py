@@ -72,7 +72,7 @@ class TestParser(TestCase):
         program = par.parse_program()
 
         self.assertIsNotNone(program)
-        self.assertEqual(len(par.errors), 4, str(par.errors))
+        self.assertEqual(len(par.errors), 4, par.error_str)
 
     def test_parser_return_statement(self):
         code = ("return 5;\n"
@@ -83,7 +83,7 @@ class TestParser(TestCase):
         par = parser.Parser(lex)
         program = par.parse_program()
         self.assertIsNotNone(program)
-        self.assertEqual(len(par.errors), 0, str(par.errors))
+        self.assertEqual(len(par.errors), 0, par.error_str)
         self.assertEqual(len(program.statements), 3)
 
         for stmt in program.statements:
@@ -98,7 +98,7 @@ class TestParser(TestCase):
 
         program = par.parse_program()
         self.assertIsNotNone(program)
-        self.assertEqual(len(par.errors), 0, str(par.errors))
+        self.assertEqual(len(par.errors), 0, par.error_str)
         self.assertEqual(len(program.statements), 1)
 
         stmt = program.statements[0]
@@ -112,7 +112,7 @@ class TestParser(TestCase):
 
         program = par.parse_program()
         self.assertIsNotNone(program)
-        self.assertEqual(len(par.errors), 0, str(par.errors))
+        self.assertEqual(len(par.errors), 0, par.error_str)
         self.assertEqual(len(program.statements), 1)
 
         stmt = program.statements[0]
@@ -125,13 +125,12 @@ class TestParser(TestCase):
             ("false;", False)
         ]
 
-        for example in examples:
-            code, expected = example
+        for code, expected in examples:
             lex = lexer.Lexer(code)
             par = parser.Parser(lex)
             program = par.parse_program()
             self.assertIsNotNone(program)
-            self.assertEqual(len(par.errors), 0, str(par.errors))
+            self.assertEqual(len(par.errors), 0, par.error_str)
             self.assertEqual(len(program.statements), 1)
             stmt = program.statements[0]
             self.assertIsInstance(stmt, ast.ExpressionStatement)
@@ -149,7 +148,7 @@ class TestParser(TestCase):
             par = parser.Parser(lex)
             program = par.parse_program()
             self.assertIsNotNone(program)
-            self.assertEqual(len(par.errors), 0, str(par.errors))
+            self.assertEqual(len(par.errors), 0, par.error_str)
             self.assertEqual(len(program.statements), 1)
             stmt = program.statements[0]
             self.assertIsInstance(stmt, ast.ExpressionStatement)
@@ -174,7 +173,7 @@ class TestParser(TestCase):
             par = parser.Parser(lex)
             program = par.parse_program()
             self.assertIsNotNone(program)
-            self.assertEqual(len(par.errors), 0, str(par.errors))
+            self.assertEqual(len(par.errors), 0, par.error_str)
             self.assertEqual(len(program.statements), 1)
             stmt = program.statements[0]
             self.assertIsInstance(stmt, ast.ExpressionStatement)
@@ -210,16 +209,100 @@ class TestParser(TestCase):
             # ("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"),
         ]
 
-        for example in code_examples:
-            code, expected = example
+        for code, expected in code_examples:
             lex = lexer.Lexer(code)
             par = parser.Parser(lex)
             program = par.parse_program()
             self.assertIsNotNone(program)
-            self.assertEqual(len(par.errors), 0, str(par.errors))
+            self.assertEqual(len(par.errors), 0, par.error_str)
             self.assertEqual(program.string, expected)
 
         return
+
+    def test_parser_if_expression(self):
+        code = "if (x < y) { x }"
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        self.assertIsInstance(stmt.expression, ast.IfExpression)
+        exp = stmt.expression
+        self.verify_infix_expression(exp.condition, "x", "<", "y")
+        cons_stmts = exp.consequence.statements
+        self.assertEqual(len(cons_stmts), 1)
+        self.assertIsInstance(cons_stmts[0], ast.ExpressionStatement)
+        con_exp = cons_stmts[0].expression
+        self.verify_identifier(con_exp, "x")
+        self.assertEqual(exp.alternative, None)
+
+    def test_parser_if_else_expression(self):
+        code = "if (x < y) { x } else { y }"
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        self.assertIsInstance(stmt.expression, ast.IfExpression)
+        exp = stmt.expression
+        self.verify_infix_expression(exp.condition, "x", "<", "y")
+        cons_stmts = exp.consequence.statements
+        self.assertEqual(len(cons_stmts), 1)
+        self.assertIsInstance(cons_stmts[0], ast.ExpressionStatement)
+        con_exp = cons_stmts[0].expression
+        self.verify_identifier(con_exp, "x")
+        alt_stmts = exp.alternative.statements
+        self.assertEqual(len(alt_stmts), 1)
+        self.assertIsInstance(alt_stmts[0], ast.ExpressionStatement)
+        alt_exp = alt_stmts[0].expression
+        self.verify_identifier(alt_exp, "y")
+
+    def test_parser_function_literal(self):
+        code = "fn(x, y) { x + y; }"
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        self.assertIsInstance(stmt.expression, ast.FunctionLiteral)
+        params = stmt.expression.parameters
+        self.assertEqual(len(params), 2)
+        self.verify_literal_expression(params[0], "x")
+        self.verify_literal_expression(params[1], "y")
+        body = stmt.expression.body.statements
+        body = stmt.expression.body.statements[0]
+        self.assertIsInstance(body, ast.ExpressionStatement)
+        self.verify_infix_expression(body.expression, "x", "+", "y")
+
+    def test_parser_function_param_cases(self):
+        cases = [
+            ("fn() {};", []),
+            ("fn(x) {};", ["x"]),
+            ("fn(x, y, z) {};", ["x", "y", "z"]),
+        ]
+        for code, expected_params in cases:
+            lex = lexer.Lexer(code)
+            par = parser.Parser(lex)
+            program = par.parse_program()
+            self.assertIsNotNone(program)
+            self.assertEqual(len(par.errors), 0, par.error_str)
+            self.assertEqual(len(program.statements), 1)
+            stmt = program.statements[0]
+            self.assertIsInstance(stmt, ast.ExpressionStatement)
+            self.assertIsInstance(stmt.expression, ast.FunctionLiteral)
+            params = stmt.expression.parameters
+            self.assertEqual(len(params), len(expected_params))
+            for ident, expected_ident in zip(params, expected_params):
+                self.verify_literal_expression(ident, expected_ident)
 
 
 if __name__ == "__main__":

@@ -192,3 +192,63 @@ class InfixExpression(Expression):
     @property
     def string(self) -> str:
         return "(" + self.left.string + " " + self.operator + " " + self.right.string + ")"
+
+
+@dataclass
+class BlockStatement(Statement):
+    tok: token.Token = None
+    statements: List[Statement] = None
+
+    def statement_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return "".join([s.string for s in self.statements])
+
+
+@dataclass
+class IfExpression(Expression):
+    tok: token.Token = None
+    condition: Expression = None
+    consequence: BlockStatement = None
+    alternative: BlockStatement = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        string = "if"
+        string += self.condition.string + " " + self.Consequence.string
+        if self.Alternative is not None:
+            string += "else " + self.Alternative.string
+        return string
+
+
+@dataclass
+class FunctionLiteral(Expression):
+    tok: token.Token = None
+    parameters: List[Identifier] = None
+    body: BlockStatement = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        string = ""
+        string += self.tok.token_literal + "("
+        string += ",".join([p.string for p in self.parameters])
+        string += ")"
+        string += self.body.string
+        return string
