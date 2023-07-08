@@ -9,6 +9,11 @@ class TestParser(TestCase):
         self.assertEqual(intlit.value, value)
         self.assertEqual(intlit.token_literal, str(value))
 
+    def verify_boolean(self, b: ast.Boolean, value: bool):
+        self.assertIsInstance(b, ast.Boolean)
+        self.assertEqual(b.value, value)
+        self.assertEqual(b.token_literal, str(value).lower())  # "True"->"true"
+
     def verify_identifier(self, exp: ast.Identifier, value: str):
         self.assertIsInstance(exp, ast.Identifier)
         self.assertEqual(exp.value, value)
@@ -111,6 +116,24 @@ class TestParser(TestCase):
         stmt = program.statements[0]
         self.assertIsInstance(stmt, ast.ExpressionStatement)
         self.verify_integer_literal(stmt.expression, 5)
+
+    def test_parser_booleans(self):
+        examples = [
+            ("true;", "true"),
+            ("false;", "false")
+        ]
+
+        for example in examples:
+            code, expected = example
+            lex = lexer.Lexer(code)
+            par = parser.Parser(lex)
+            program = par.parse_program()
+            self.assertIsNotNone(program)
+            self.assertEqual(len(par.errors), 0, str(par.errors))
+            self.assertEqual(len(program.statements), 1)
+            stmt = program.statements[0]
+            self.assertIsInstance(stmt, ast.ExpressionStatement)
+            self.verify_boolean(stmt.expression, expected)
 
     def test_parser_unary_prefix_expressions(self):
         prefix_tests = {

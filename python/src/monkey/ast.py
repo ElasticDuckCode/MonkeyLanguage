@@ -144,6 +144,20 @@ class IntegerLiteral(Expression):
 
 
 @dataclass
+class Boolean(Expression):
+    tok: token.Token = None
+    value: bool = None
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return self.tok.literal
+
+
+@dataclass
 class PrefixExpression(Expression):
     tok: token.Token = None
     operator: str = None
