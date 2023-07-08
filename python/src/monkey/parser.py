@@ -48,6 +48,8 @@ class Parser:
         self._errors = []
 
         self.register_prefix(token.INT, self.parse_integer_literal)
+        self.register_prefix(token.TRUE, self.parse_boolean)
+        self.register_prefix(token.FALSE, self.parse_boolean)
         self.register_prefix(token.IDENT, self.parse_identifier)
         self.register_prefix(token.BANG, self.parse_prefix_expression)
         self.register_prefix(token.MINUS, self.parse_prefix_expression)
@@ -153,6 +155,15 @@ class Parser:
             self.int_val_error()
             return None
 
+    def parse_boolean(self) -> ast.Expression:
+        try:
+            bool_map = {"true": True, "false": False}
+            value = bool_map[self.curr_token.literal]
+            return ast.Boolean(self.curr_token, value)
+        except ValueError:
+            self.bool_val_error()
+            return None
+
     def parse_prefix_expression(self) -> ast.Expression:
         tok = self.curr_token
         operator = self.curr_token.literal
@@ -184,7 +195,7 @@ class Parser:
             self.peek_error(t)
             return False
 
-    @property
+    @ property
     def peek_precidence(self) -> int:
         ttype = self.peek_token.token_type
         if ttype in precidences.keys():
@@ -192,7 +203,7 @@ class Parser:
         else:
             return LOWEST
 
-    @property
+    @ property
     def curr_precidence(self) -> int:
         ttype = self.curr_token.token_type
         if ttype in precidences.keys():
@@ -207,6 +218,10 @@ class Parser:
 
     def int_val_error(self):
         msg = f"Could not parse {self.curr_token.literal} as integer."
+        self._errors.append(msg)
+
+    def bool_val_error(self):
+        msg = f"Could not parse {self.curr_token.literal} as boolean."
         self._errors.append(msg)
 
     def missing_prefix_parse_fn_error(self, t: token.TokenType):

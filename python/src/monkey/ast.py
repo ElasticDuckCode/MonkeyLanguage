@@ -148,6 +148,8 @@ class Boolean(Expression):
     tok: token.Token = None
     value: bool = None
 
+    def expression_node(self) -> None: return
+
     @property
     def token_literal(self) -> str:
         return self.tok.literal

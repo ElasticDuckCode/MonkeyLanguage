@@ -119,8 +119,8 @@ class TestParser(TestCase):
 
     def test_parser_booleans(self):
         examples = [
-            ("true;", "true"),
-            ("false;", "false")
+            ("true;", True),
+            ("false;", False)
         ]
 
         for example in examples:
