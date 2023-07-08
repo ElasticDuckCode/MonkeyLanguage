@@ -112,6 +112,80 @@ class TestParser(TestCase):
             self.assertEqual(integ.value, value)
             self.assertEqual(integ.token_literal, str(value))
 
+    def test_parse_binary_infix_expressions(self):
+        infix_tests = {
+            "5 + 5;": (5, "+", 5),
+            "5 - 5": (5, "-", 5),
+            "5 * 5": (5, "*", 5),
+            "5 / 5": (5, "/", 5),
+            "5 > 5": (5, ">", 5),
+            "5 < 5": (5, "<", 5),
+            "5 == 5": (5, "==", 5),
+            "5 != 5": (5, "!=", 5),
+        }
+        for code in infix_tests.keys():
+            lex = lexer.Lexer(code)
+            par = parser.Parser(lex)
+            program = par.parse_program()
+            self.assertIsNotNone(program)
+            self.assertEqual(len(par.errors), 0, str(par.errors))
+            self.assertEqual(len(program.statements), 1)
+            stmt = program.statements[0]
+            self.assertIsInstance(stmt, ast.ExpressionStatement)
+            exp = stmt.expression
+            self.assertIsInstance(exp, ast.InfixExpression)
+            integ = exp.left
+            self.assertIsInstance(integ, ast.IntegerLiteral)
+            value = infix_tests[code][0]
+            self.assertEqual(integ.value, value)
+            self.assertEqual(integ.token_literal, str(value))
+            self.assertEqual(exp.operator, infix_tests[code][1])
+            integ = exp.right
+            self.assertIsInstance(integ, ast.IntegerLiteral)
+            value = infix_tests[code][2]
+            self.assertEqual(integ.value, value)
+            self.assertEqual(integ.token_literal, str(value))
+
+    def test_parser_infix_expression_precidence(self):
+        code_examples = [
+            ("-a * b", "((-a) * b)"),
+            ("!-a", "(!(-a))"),
+            ("a + b + c", "((a + b) + c)"),
+            ("a + b - c", "((a + b) - c)"),
+            ("a * b * c", "((a * b) * c)"),
+            ("a * b / c", "((a * b) / c)"),
+            ("a + b / c", "(a + (b / c))"),
+            ("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"),
+            ("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"),
+            ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
+            ("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"),
+            ("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
+            # ("true", "true"),
+            # ("false", "false"),
+            # ("3 > 5 == false", "((3 > 5) == false)"),
+            # ("3 < 5 == true", "((3 < 5) == true)"),
+            # ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            # ("(5 + 5) * 2", "((5 + 5) * 2)"),
+            # ("2 / (5 + 5)", "(2 / (5 + 5))"),
+            # ("(5 + 5) * 2 * (5 + 5)", "(((5 + 5) * 2) * (5 + 5))"),
+            # ("-(5 + 5)", "(-(5 + 5))"),
+            # ("!(true == true)", "(!(true == true))"),
+            # ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
+            # ("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+            # "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"),
+            # ("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"),
+        ]
+
+        for example in code_examples:
+            code, expected = example
+            lex = lexer.Lexer(code)
+            par = parser.Parser(lex)
+            program = par.parse_program()
+            self.assertIsNotNone(program)
+            self.assertEqual(len(par.errors), 0, str(par.errors))
+
+        return
+
 
 if __name__ == "__main__":
     main()

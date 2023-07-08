@@ -8,6 +8,16 @@ import src.monkey.token as token
 
 
 LOWEST, EQUALS, LESSGREATER, SUM, PRODUCT, PREFIX, CALL = range(1, 8)
+precidences = {
+    token.EQ:       EQUALS,
+    token.NOT_EQ:   EQUALS,
+    token.LT:       LESSGREATER,
+    token.GT:       LESSGREATER,
+    token.PLUS:     SUM,
+    token.MINUS:    SUM,
+    token.SLASH:    PRODUCT,
+    token.ASTERISK: PRODUCT
+}
 
 
 # TODO: Not sure the best way to do this...
@@ -41,6 +51,14 @@ class Parser:
         self.register_prefix(token.IDENT, self.parse_identifier)
         self.register_prefix(token.BANG, self.parse_prefix_expression)
         self.register_prefix(token.MINUS, self.parse_prefix_expression)
+        self.register_infix(token.PLUS, self.parse_infix_expression)
+        self.register_infix(token.MINUS, self.parse_infix_expression)
+        self.register_infix(token.SLASH, self.parse_infix_expression)
+        self.register_infix(token.ASTERISK, self.parse_infix_expression)
+        self.register_infix(token.EQ, self.parse_infix_expression)
+        self.register_infix(token.NOT_EQ, self.parse_infix_expression)
+        self.register_infix(token.LT, self.parse_infix_expression)
+        self.register_infix(token.GT, self.parse_infix_expression)
 
     @ property
     def errors(self):
@@ -88,7 +106,18 @@ class Parser:
             return None
         else:
             prefix = self.prefix_parse_fns[self.curr_token.token_type]
-            return prefix()
+            exp = prefix()
+
+        while not self.is_peek_token(token.SEMICOLON) and (precidence < self.peek_precidence):
+            self.next_token()
+            if self.curr_token.token_type not in self.infix_parse_fns.keys():
+                self.missing_infix_parse_fn_error(self.curr_token.token_type)
+                return exp
+            else:
+                infix = self.infix_parse_fns[self.curr_token.token_type]
+                exp = infix(exp)
+
+        return exp
 
     def parse_let_statement(self) -> ast.LetStatement:
         tok = self.curr_token
@@ -131,6 +160,14 @@ class Parser:
         right = self.parse_expression(PREFIX)
         return ast.PrefixExpression(tok, operator, right)
 
+    def parse_infix_expression(self, left: ast.Expression) -> ast.Expression:
+        tok = self.curr_token
+        operator = self.curr_token.literal
+        precidence = self.curr_precidence
+        self.next_token()
+        right = self.parse_expression(precidence)
+        return ast.InfixExpression(tok, left, operator, right)
+
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t
 
@@ -147,6 +184,22 @@ class Parser:
             self.peek_error(t)
             return False
 
+    @property
+    def peek_precidence(self) -> int:
+        ttype = self.peek_token.token_type
+        if ttype in precidences.keys():
+            return precidences[ttype]
+        else:
+            return LOWEST
+
+    @property
+    def curr_precidence(self) -> int:
+        ttype = self.curr_token.token_type
+        if ttype in precidences.keys():
+            return precidences[ttype]
+        else:
+            return LOWEST
+
     def peek_error(self, t: token.TokenType):
         msg = (f"Expected next token to be {t}, "
                f"not {self.peek_token.token_type}.")
@@ -158,4 +211,8 @@ class Parser:
 
     def missing_prefix_parse_fn_error(self, t: token.TokenType):
         msg = f"Missing prefix parse function for {t} found."
+        self._errors.append(msg)
+
+    def missing_infix_parse_fn_error(self, t: token.TokenType):
+        msg = f"Missing infix parse function for {t} found."
         self._errors.append(msg)

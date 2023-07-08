@@ -158,3 +158,21 @@ class PrefixExpression(Expression):
     @property
     def string(self) -> str:
         return "(" + self.operator + self.right.string + ")"
+
+
+@dataclass
+class InfixExpression(Expression):
+    tok: token.Token = None
+    left: Expression = None
+    operator: str = None
+    right: Expression = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return "(" + self.left.string + self.operator + self.right.string + ")"
