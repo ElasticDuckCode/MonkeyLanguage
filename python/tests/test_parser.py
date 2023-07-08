@@ -9,6 +9,28 @@ class TestParser(TestCase):
         self.assertEqual(intlit.value, value)
         self.assertEqual(intlit.token_literal, str(value))
 
+    def verify_identifier(self, exp: ast.Identifier, value: str):
+        self.assertIsInstance(exp, ast.Identifier)
+        self.assertEqual(exp.value, value)
+        self.assertEqual(exp.token_literal, value)
+
+    def verify_literal_expression(self, exp: ast.Expression, expected):
+        if isinstance(expected, int):
+            self.verify_integer_literal(exp, expected)
+        else:
+            self.verify_identifier(exp, expected)
+
+    def verify_prefix_expression(self, exp: ast.PrefixExpression, operator: str, right):
+        self.assertIsInstance(exp, ast.PrefixExpression)
+        self.assertEqual(exp.operator, operator)
+        self.verify_literal_expression(exp.right, right)
+
+    def verify_infix_expression(self, exp: ast.InfixExpression, left, operator: str, right):
+        self.assertIsInstance(exp, ast.InfixExpression)
+        self.verify_literal_expression(exp.left, left)
+        self.assertEqual(exp.operator, operator)
+        self.verify_literal_expression(exp.right, right)
+
     def test_parser_let_statement(self):
         code = ("let x = 5;\n"
                 "let y = 10;\n"
@@ -74,9 +96,7 @@ class TestParser(TestCase):
 
         stmt = program.statements[0]
         self.assertIsInstance(stmt, ast.ExpressionStatement)
-        self.assertIsInstance(stmt.expression, ast.Identifier)
-        self.assertEqual(stmt.expression.value, "foobar")
-        self.assertEqual(stmt.token_literal, "foobar")
+        self.verify_identifier(stmt.expression, "foobar")
 
     def test_parser_integer_literal_expressions(self):
         code = "5;"
@@ -106,11 +126,7 @@ class TestParser(TestCase):
             self.assertEqual(len(program.statements), 1)
             stmt = program.statements[0]
             self.assertIsInstance(stmt, ast.ExpressionStatement)
-            exp = stmt.expression
-            self.assertIsInstance(exp, ast.PrefixExpression)
-            self.assertEqual(exp.operator, prefix_tests[code][0])
-            integ = exp.right
-            self.verify_integer_literal(integ, prefix_tests[code][1])
+            self.verify_prefix_expression(stmt.expression, *prefix_tests[code])
 
     def test_parse_binary_infix_expressions(self):
         infix_tests = {
@@ -132,13 +148,7 @@ class TestParser(TestCase):
             self.assertEqual(len(program.statements), 1)
             stmt = program.statements[0]
             self.assertIsInstance(stmt, ast.ExpressionStatement)
-            exp = stmt.expression
-            self.assertIsInstance(exp, ast.InfixExpression)
-            integ = exp.left
-            self.verify_integer_literal(integ, infix_tests[code][0])
-            self.assertEqual(exp.operator, infix_tests[code][1])
-            integ = exp.right
-            self.verify_integer_literal(integ, infix_tests[code][2])
+            self.verify_infix_expression(stmt.expression, *infix_tests[code])
 
     def test_parser_infix_expression_precidence(self):
         code_examples = [
