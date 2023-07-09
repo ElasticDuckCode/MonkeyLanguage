@@ -20,6 +20,9 @@ class TestEval(TestCase):
         self.assertIsInstance(o, obj.Boolean)
         self.assertEqual(o.value, expect)
 
+    def verify_null_obj(self, o: obj.Null):
+        self.assertEqual(o, obj.NULL)
+
     def test_eval_integer(self):
         cases = [
             ("5", 5),
@@ -78,3 +81,20 @@ class TestEval(TestCase):
         )
         for code, expect in cases:
             self.verify_boolean_obj(self.verify_eval(code), expect)
+
+    def test_eval_if_else_expressions(self):
+        cases = (
+            ("if (true) { 10 }", 10),
+            ("if (false) { 10 }", None),
+            ("if (1) { 10 }", 10),
+            ("if (1 < 2) { 10 }", 10),
+            ("if (1 > 2) { 10 }", None),
+            ("if (1 < 2) { 10 } else { 20 }", 10),
+            ("if (1 > 2) { 10 } else { 20 }", 20),
+        )
+        for code, expect in cases:
+            o = self.verify_eval(code)
+            if expect is not None:
+                self.verify_integer_obj(o, expect)
+            else:
+                self.verify_null_obj(o)

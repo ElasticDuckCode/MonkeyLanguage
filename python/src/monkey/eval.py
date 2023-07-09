@@ -6,6 +6,16 @@ def eval(node: ast.Node) -> obj.Object:
     match type(node):
         case ast.Program:
             return eval_statements(node.statements)
+        case ast.BlockStatement:
+            return eval_statements(node.statements)
+        case ast.IfExpression:
+            condition = eval(node.condition)
+            if is_truthy(condition):
+                return eval(node.consequence)
+            elif node.alternative is not None:
+                return eval(node.alternative)
+            else:
+                return obj.NULL
         case ast.ExpressionStatement:
             return eval(node.expression)
         case ast.PrefixExpression:
@@ -110,3 +120,15 @@ def eval_minus_operator(right: obj.Object) -> obj.Object:
     if type(right) != obj.Integer:
         return obj.NULL
     return obj.Integer(-right.value)
+
+
+def is_truthy(o: obj.Object):
+    match o:
+        case obj.NULL:
+            return False
+        case obj.TRUE:
+            return True
+        case obj.FALSE:
+            return False
+        case _:
+            return True
