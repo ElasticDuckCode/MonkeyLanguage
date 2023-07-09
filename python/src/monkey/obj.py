@@ -7,9 +7,10 @@ class ObjectType(str):
     pass
 
 
-INTEGER_OBJ: Final[ObjectType] = "INTEGER"
-BOOLEAN_OBJ: Final[ObjectType] = "BOOLEAN"
-NULL_OBJ:    Final[ObjectType] = "NULL"
+INTEGER_OBJ:      Final[ObjectType] = "INTEGER"
+BOOLEAN_OBJ:      Final[ObjectType] = "BOOLEAN"
+NULL_OBJ:         Final[ObjectType] = "NULL"
+RETURN_VALUE_OBJ: Final[ObjectType] = "RETURN_VALUE"
 
 
 class Object(ABC):
@@ -63,3 +64,15 @@ class Null(Object):
 
 
 NULL: Final[Null] = Null()
+
+
+@dataclass
+class ReturnValue(Object):
+    value: Object = None
+
+    @property
+    def otype(self) -> ObjectType: return RETURN_VALUE_OBJ
+
+    @property
+    def inspect(self) -> str:
+        return self.value.inspect

@@ -98,3 +98,19 @@ class TestEval(TestCase):
                 self.verify_integer_obj(o, expect)
             else:
                 self.verify_null_obj(o)
+
+    def test_eval_return_statement(self):
+        cases = (
+            ("return 10;", 10),
+            ("return 10; 9;", 10),
+            ("return 2 * 5; 9;", 10),
+            ("9; return 2 * 5; 9;", 10),
+            ("if (10 > 1) {\
+                if (10 > 1) {\
+                    return 10;\
+                }\
+                return 1;\
+              }", 10)
+        )
+        for code, expect in cases:
+            self.verify_integer_obj(self.verify_eval(code), expect)

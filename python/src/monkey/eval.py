@@ -5,9 +5,9 @@ from src.monkey import ast, obj
 def eval(node: ast.Node) -> obj.Object:
     match type(node):
         case ast.Program:
-            return eval_statements(node.statements)
+            return eval_program(node.statements)
         case ast.BlockStatement:
-            return eval_statements(node.statements)
+            return eval_block_statements(node.statements)
         case ast.IfExpression:
             condition = eval(node.condition)
             if is_truthy(condition):
@@ -16,6 +16,9 @@ def eval(node: ast.Node) -> obj.Object:
                 return eval(node.alternative)
             else:
                 return obj.NULL
+        case ast.ReturnStatement:
+            val = eval(node.value)
+            return obj.ReturnValue(val)
         case ast.ExpressionStatement:
             return eval(node.expression)
         case ast.PrefixExpression:
@@ -36,10 +39,21 @@ def eval(node: ast.Node) -> obj.Object:
             return None
 
 
-def eval_statements(stmts: List[ast.Statement]) -> obj.Object:
+def eval_program(stmts: List[ast.Statement]) -> obj.Object:
     result = None
     for stmt in stmts:
         result = eval(stmt)
+        if type(result) == obj.ReturnValue:
+            return result.value
+    return result
+
+
+def eval_block_statements(stmts: List[ast.Statement]) -> obj.Object:
+    result = None
+    for stmt in stmts:
+        result = eval(stmt)
+        if result != type(result) == obj.ReturnValue:
+            return result
     return result
 
 
