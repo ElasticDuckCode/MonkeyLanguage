@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Final, List
+from typing import Final, NewType, List, Callable
 
 from ..ast import ast
 
 
-class ObjectType(str):
-    pass
+ObjectType = NewType('ObjectType', str)
 
 
 INTEGER_OBJ:      Final[ObjectType] = "INTEGER"
@@ -16,6 +15,7 @@ NULL_OBJ:         Final[ObjectType] = "NULL"
 RETURN_VALUE_OBJ: Final[ObjectType] = "RETURN_VALUE"
 ERROR_OBJ:        Final[ObjectType] = "ERROR"
 FUNCTION_OBJ:     Final[ObjectType] = "FUNCTION"
+BUILTIN_OBJ:      Final[ObjectType] = "BUILTIN"
 
 
 class Object(ABC):
@@ -123,3 +123,15 @@ class Function(Object):
         string += ",".join([p.string for p in self.parameters]) + "\n"
         string += self.body.string + "\n"
         return self.string
+
+
+@dataclass
+class BuiltIn(Object):
+    fn: Callable = None
+
+    @property
+    def otype(self) -> ObjectType: return BUILTIN_OBJ
+
+    @property
+    def inspect(self) -> str:
+        return "builtin function"

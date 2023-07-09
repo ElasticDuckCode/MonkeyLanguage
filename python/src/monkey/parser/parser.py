@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Dict
-from abc import ABC, abstractmethod
+from typing import List, Dict, Callable
 
 from ..ast import ast
 from ..lexer import lexer
@@ -21,24 +20,21 @@ precidences = {
 }
 
 
-# TODO: Not sure the best way to do this...
-class PrefixParseFn(ABC):
-    @abstractmethod
-    def __call__(self) -> ast.Expression: pass
-
-
-class InfixParseFn(ABC):
-    @abstractmethod
-    def __call__(self, exp: ast.Expression) -> ast.Expression: pass
-
-
 @dataclass
 class Parser:
     lex: lexer.Lexer
     curr_token: token.Token = None
     peek_token: token.Token = None
-    prefix_parse_fns: Dict[token.TokenType, PrefixParseFn] = None
-    infix_parse_fns: Dict[token.TokenType, InfixParseFn] = None
+    prefix_parse_fns:\
+        Dict[
+            token.TokenType,
+            Callable[[], ast.Expression]
+        ] = None
+    infix_parse_fns:\
+        Dict[
+            token.TokenType,
+            Callable[[ast.Expression], ast.Expression]
+        ] = None
     _errors: List[str] = None
 
     def __post_init__(self) -> None:
@@ -81,10 +77,18 @@ class Parser:
         self.curr_token = self.peek_token
         self.peek_token = self.lex.next_token()
 
-    def register_prefix(self, tt: token.TokenType, fn: PrefixParseFn) -> None:
+    def register_prefix(
+        self,
+        tt: token.TokenType,
+        fn: Callable[[], ast.Expression]
+    ) -> None:
         self.prefix_parse_fns[tt] = fn
 
-    def register_infix(self, tt: token.TokenType, fn: PrefixParseFn) -> None:
+    def register_infix(
+        self,
+        tt: token.TokenType,
+        fn: Callable[[ast.Expression], ast.Expression]
+    ) -> None:
         self.infix_parse_fns[tt] = fn
 
     def parse_program(self) -> ast.Program:
@@ -121,7 +125,10 @@ class Parser:
             prefix = self.prefix_parse_fns[self.curr_token.token_type]
             exp = prefix()
 
-        while not self.is_peek_token(token.SEMICOLON) and (precidence < self.peek_precidence):
+        not_semicolon = not self.is_peek_token(token.SEMICOLON)
+        peek_greater_precidence = precidence < self.peek_precidence
+
+        while not_semicolon and peek_greater_precidence:
             self.next_token()
             if self.curr_token.token_type not in self.infix_parse_fns.keys():
                 self.missing_infix_parse_fn_error(self.curr_token.token_type)
@@ -129,6 +136,9 @@ class Parser:
             else:
                 infix = self.infix_parse_fns[self.curr_token.token_type]
                 exp = infix(exp)
+
+            not_semicolon = not self.is_peek_token(token.SEMICOLON)
+            peek_greater_precidence = precidence < self.peek_precidence
 
         return exp
 
@@ -229,11 +239,18 @@ class Parser:
         tok = self.curr_token
         stmts = []
         self.next_token()
-        while not self.is_curr_token(token.RBRACE) and not self.is_curr_token(token.EOF):
+
+        not_rbrace = not self.is_curr_token(token.RBRACE)
+        not_eof = not self.is_curr_token(token.EOF)
+
+        while not_rbrace and not_eof:
             stmt = self.parse_statement()
             if stmt is not None:
                 stmts.append(stmt)
             self.next_token()
+            not_rbrace = not self.is_curr_token(token.RBRACE)
+            not_eof = not self.is_curr_token(token.EOF)
+
         return ast.BlockStatement(tok, stmts)
 
     def parse_function_literal(self) -> ast.Expression:

@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, NewType
 
 
-class TokenType(str):
-    pass
+TokenType = NewType('TokenType', str)
 
 
 ILLEGAL:   Final[TokenType] = "ILLEGAL"
