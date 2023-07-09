@@ -115,6 +115,16 @@ class TestEval(TestCase):
         for code, expect in cases:
             self.verify_integer_obj(self.verify_eval(code), expect)
 
+    def test_eval_let_statements(self):
+        cases = (
+            ("let a = 5; a;", 5),
+            ("let a = 5 * 5; a;", 25),
+            ("let a = 5; let b = a; b;", 5),
+            ("let a = 5; let b = a; let c = a + b + 5; c;", 15),
+        )
+        for code, expect in cases:
+            self.verify_integer_obj(self.verify_eval(code), expect)
+
     def test_eval_error_handling(self):
         cases = (
             ("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
@@ -129,7 +139,8 @@ class TestEval(TestCase):
                     return true + false;\
                 }\
                 return 1;\
-              }", "unknown operator: BOOLEAN + BOOLEAN")
+              }", "unknown operator: BOOLEAN + BOOLEAN"),
+            ("foobar;", "identifier not found: foobar")
         )
         for code, expect in cases:
             o = self.verify_eval(code)

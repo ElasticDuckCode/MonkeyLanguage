@@ -1,5 +1,6 @@
 import os
 
+import src.monkey.obj as obj
 from src.monkey.repl import start
 
 TEXT = r"""

@@ -18,6 +18,10 @@ def eval(node: ast.Node) -> obj.Object:
                 return eval(node.alternative)
             else:
                 return obj.NULL
+        case ast.LetStatement:
+            val = eval(node.value)
+            if is_error(val):
+                return val
         case ast.ReturnStatement:
             val = eval(node.value)
             if is_error(val):
