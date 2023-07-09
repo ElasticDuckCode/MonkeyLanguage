@@ -21,6 +21,10 @@ class TestEval(TestCase):
         self.assertIsInstance(o, obj.Boolean)
         self.assertEqual(o.value, expect)
 
+    def verify_string_obj(self, o: obj.String, expect: str):
+        self.assertIsInstance(o, obj.String)
+        self.assertEqual(o.value, expect)
+
     def verify_null_obj(self, o: obj.Null):
         self.assertEqual(o, obj.NULL)
 
@@ -44,7 +48,6 @@ class TestEval(TestCase):
         ]
         for code, expect in cases:
             self.verify_integer_obj(self.verify_eval(code), expect)
-        pass
 
     def test_eval_boolean(self):
         cases = [
@@ -70,6 +73,15 @@ class TestEval(TestCase):
         ]
         for code, expect in cases:
             self.verify_boolean_obj(self.verify_eval(code), expect)
+
+    def test_eval_string(self):
+        cases = [
+            (r'"hello world";', "hello world"),
+            (r'"hello\n world";', "hello\n world"),
+            (r'"hello\n\t world\"";', "hello\n\t world\""),
+        ]
+        for code, expect in cases:
+            self.verify_string_obj(self.verify_eval(code), expect)
 
     def test_eval_bang_operator(self):
         cases = (
@@ -141,7 +153,8 @@ class TestEval(TestCase):
                 }\
                 return 1;\
               }", "unknown operator: BOOLEAN + BOOLEAN"),
-            ("foobar;", "identifier not found: foobar")
+            ("foobar;", "identifier not found: foobar"),
+            ('"hello" - "world";', "unknown operator: STRING - STRING")
         )
         for code, expect in cases:
             o = self.verify_eval(code)
@@ -177,3 +190,11 @@ class TestEval(TestCase):
         addTwo(2);\
         """
         self.verify_integer_obj(self.verify_eval(code), 4)
+
+    def test_eval_string_concat(self):
+        code = r"""
+        let x = "hello";
+        let y = "world";
+        x + " " + y;
+        """
+        self.verify_string_obj(self.verify_eval(code), "hello world")

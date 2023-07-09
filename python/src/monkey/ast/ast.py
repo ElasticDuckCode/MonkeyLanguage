@@ -144,6 +144,22 @@ class IntegerLiteral(Expression):
 
 
 @dataclass
+class StringLiteral(Expression):
+    tok: token.Token = None
+    value: str = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return self.tok.literal
+
+
+@dataclass
 class Boolean(Expression):
     tok: token.Token = None
     value: bool = None

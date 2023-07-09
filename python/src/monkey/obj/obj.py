@@ -11,6 +11,7 @@ class ObjectType(str):
 
 INTEGER_OBJ:      Final[ObjectType] = "INTEGER"
 BOOLEAN_OBJ:      Final[ObjectType] = "BOOLEAN"
+STRING_OBJ:       Final[ObjectType] = "STRING"
 NULL_OBJ:         Final[ObjectType] = "NULL"
 RETURN_VALUE_OBJ: Final[ObjectType] = "RETURN_VALUE"
 ERROR_OBJ:        Final[ObjectType] = "ERROR"
@@ -34,6 +35,18 @@ class Integer(Object):
 
     @property
     def otype(self) -> ObjectType: return INTEGER_OBJ
+
+    @property
+    def inspect(self) -> str:
+        return str(self.value)
+
+
+@dataclass
+class String(Object):
+    value: str = None
+
+    @property
+    def otype(self) -> ObjectType: return STRING_OBJ
 
     @property
     def inspect(self) -> str:

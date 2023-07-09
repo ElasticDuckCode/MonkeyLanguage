@@ -9,6 +9,11 @@ class TestParser(TestCase):
         self.assertEqual(intlit.value, value)
         self.assertEqual(intlit.token_literal, str(value))
 
+    def verify_string_literal(self, slit: ast.StringLiteral, value: str):
+        self.assertIsInstance(slit, ast.StringLiteral)
+        self.assertEqual(slit.value, value)
+        self.assertEqual(slit.token_literal, value)
+
     def verify_boolean(self, b: ast.Boolean, value: bool):
         self.assertIsInstance(b, ast.Boolean)
         self.assertEqual(b.value, value)
@@ -387,6 +392,18 @@ class TestParser(TestCase):
             stmt = program.statements[0]
             self.verify_return_statement(stmt)
             self.verify_literal_expression(stmt.value, expected)
+
+    def test_parser_string_literal_expressions(self):
+        code, expected = (r'"hello world";', "hello world")
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        self.verify_string_literal(stmt.expression, expected)
 
 
 if __name__ == "__main__":

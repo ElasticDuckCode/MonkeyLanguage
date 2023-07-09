@@ -52,6 +52,26 @@ class Lexer:
             self.read_char()
         return self.input[start:self.position]
 
+    def read_string(self) -> str:
+        start = self.position + 1
+        esc = False
+        esc_idx = []
+        while True:
+            self.read_char()
+            if self.ch == 0:
+                break
+            if not esc:
+                if self.ch == ord('"'):
+                    break
+                if self.ch == ord('\\'):
+                    esc = True
+                    esc_idx.append(self.position)
+            else:
+                esc = False
+        # process escape chars using python decode
+        bytestring = self.input[start:self.position].encode()
+        return bytestring.decode("unicode_escape")
+
     def next_token(self) -> token.Token:
         tok = None
         self.skip_whitespace()
@@ -75,20 +95,20 @@ class Lexer:
                 tok = token.Token(token.PLUS, chr(self.ch))
             case '-':
                 tok = token.Token(token.MINUS, chr(self.ch))
-            case "!":
+            case '!':
                 if chr(self.peak_char()) == '=':
                     ch = chr(self.ch)
                     self.read_char()
                     tok = token.Token(token.NOT_EQ, ch+chr(self.ch))
                 else:
                     tok = token.Token(token.BANG, chr(self.ch))
-            case "*":
+            case '*':
                 tok = token.Token(token.ASTERISK, chr(self.ch))
-            case "/":
+            case '/':
                 tok = token.Token(token.SLASH, chr(self.ch))
-            case "<":
+            case '<':
                 tok = token.Token(token.LT, chr(self.ch))
-            case ">":
+            case '>':
                 tok = token.Token(token.GT, chr(self.ch))
             case '{':
                 tok = token.Token(token.LBRACE, chr(self.ch))
@@ -96,6 +116,8 @@ class Lexer:
                 tok = token.Token(token.RBRACE, chr(self.ch))
             case '\0':
                 tok = token.Token(token.EOF, "")
+            case '"':
+                tok = token.Token(token.STRING, self.read_string())
             case _:
                 if self.is_letter():
                     ident = self.read_identifier()

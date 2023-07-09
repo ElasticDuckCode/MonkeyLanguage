@@ -1,7 +1,7 @@
 from unittest import TestCase, main
 from src.monkey import lexer, token
 
-example_script = """\
+example_script = r'''
 let five = 5;
 let ten = 10;
 
@@ -23,7 +23,12 @@ else {
 
 10 == 10;
 10 != 9;
-"""
+"foobar"
+"foo bar"
+"foo\\bar"
+"foo\"bar"
+"hello\n world"
+'''
 
 
 class TestToken(TestCase):
@@ -123,6 +128,11 @@ class TestToken(TestCase):
             (token.NOT_EQ, "!="),
             (token.INT, "9"),
             (token.SEMICOLON, ";"),
+            (token.STRING, "foobar"),
+            (token.STRING, "foo bar"),
+            (token.STRING, "foo\\bar"),
+            (token.STRING, "foo\"bar"),
+            (token.STRING, "hello\n world"),
             (token.EOF, ""),
         ]
         for token_type, literal in expected:

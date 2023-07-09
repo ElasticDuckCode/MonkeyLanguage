@@ -60,6 +60,8 @@ def eval(node: ast.Node, e: env.Environment) -> obj.Object:
             return eval_infix_expression(node.operator, left, right, e)
         case ast.IntegerLiteral:
             return obj.Integer(node.value)
+        case ast.StringLiteral:
+            return obj.String(node.value)
         case ast.Boolean:
             if node.value:
                 return obj.TRUE
@@ -148,13 +150,15 @@ def eval_infix_expression(op: str, left: obj.Object, right: obj.Object, e: env.E
         return eval_integer_infix_expression(op, left, right, e)
     elif (type(left) == obj.Boolean) and (type(right) == obj.Boolean):
         return eval_boolean_infix_expression(op, left, right, e)
+    elif (type(left) == obj.String) and (type(right) == obj.String):
+        return eval_string_infix_expression(op, left, right, e)
     elif type(left) != type(right):
         return new_error(f"type mismatch: {left.otype} {op} {right.otype}")
     else:
         return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
-def eval_integer_infix_expression(op: str, left: obj.Integer, right: obj.Integer, e: env.Environment):
+def eval_integer_infix_expression(op: str, left: obj.Integer, right: obj.Integer, e: env.Environment) -> obj.Object:
     match op:
         case "+":
             return obj.Integer(left.value + right.value)
@@ -179,12 +183,20 @@ def eval_integer_infix_expression(op: str, left: obj.Integer, right: obj.Integer
             return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
-def eval_boolean_infix_expression(op: str, left: obj.Boolean, right: obj.Boolean, e: env.Environment):
+def eval_boolean_infix_expression(op: str, left: obj.Boolean, right: obj.Boolean, e: env.Environment) -> obj.Object:
     match op:
         case "==":
             return native_bool_to_obj_bool(left == right)  # directly compare
         case "!=":
             return native_bool_to_obj_bool(left != right)
+        case _:
+            return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
+
+
+def eval_string_infix_expression(op: str, left: obj.String, right: obj.String, e: env.Environment) -> obj.Object:
+    match op:
+        case "+":
+            return obj.String(left.value + right.value)
         case _:
             return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 

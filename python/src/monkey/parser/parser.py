@@ -49,6 +49,7 @@ class Parser:
         self._errors = []
 
         self.register_prefix(token.INT, self.parse_integer_literal)
+        self.register_prefix(token.STRING, self.parse_string_literal)
         self.register_prefix(token.TRUE, self.parse_boolean)
         self.register_prefix(token.FALSE, self.parse_boolean)
         self.register_prefix(token.IDENT, self.parse_identifier)
@@ -168,6 +169,10 @@ class Parser:
         except ValueError:
             self.int_val_error()
             return None
+
+    def parse_string_literal(self) -> ast.Expression:
+        value = self.curr_token.literal
+        return ast.StringLiteral(self.curr_token, value)
 
     def parse_boolean(self) -> ast.Expression:
         try:
