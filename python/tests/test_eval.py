@@ -114,3 +114,24 @@ class TestEval(TestCase):
         )
         for code, expect in cases:
             self.verify_integer_obj(self.verify_eval(code), expect)
+
+    def test_eval_error_handling(self):
+        cases = (
+            ("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
+            ("5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"),
+            ("-true;", "unknown operator: -BOOLEAN"),
+            ("true + false;", "unknown operator: BOOLEAN + BOOLEAN"),
+            ("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"),
+            ("if (10 > 1) { true + false; }",
+             "unknown operator: BOOLEAN + BOOLEAN"),
+            ("if (10 > 1) {\
+                if (10 > 1) {\
+                    return true + false;\
+                }\
+                return 1;\
+              }", "unknown operator: BOOLEAN + BOOLEAN")
+        )
+        for code, expect in cases:
+            o = self.verify_eval(code)
+            self.assertIsInstance(o, obj.Error)
+            self.assertEqual(o.message, expect)

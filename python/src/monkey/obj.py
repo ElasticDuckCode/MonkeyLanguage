@@ -11,6 +11,7 @@ INTEGER_OBJ:      Final[ObjectType] = "INTEGER"
 BOOLEAN_OBJ:      Final[ObjectType] = "BOOLEAN"
 NULL_OBJ:         Final[ObjectType] = "NULL"
 RETURN_VALUE_OBJ: Final[ObjectType] = "RETURN_VALUE"
+ERROR_OBJ:        Final[ObjectType] = "ERROR"
 
 
 class Object(ABC):
@@ -76,3 +77,15 @@ class ReturnValue(Object):
     @property
     def inspect(self) -> str:
         return self.value.inspect
+
+
+@dataclass
+class Error(Object):
+    message: str = None
+
+    @property
+    def otype(self) -> ObjectType: return ERROR_OBJ
+
+    @property
+    def inspect(self) -> str:
+        return "ERROR: " + self.message

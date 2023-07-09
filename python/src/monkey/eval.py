@@ -10,6 +10,8 @@ def eval(node: ast.Node) -> obj.Object:
             return eval_block_statements(node.statements)
         case ast.IfExpression:
             condition = eval(node.condition)
+            if is_error(condition):
+                return condition
             if is_truthy(condition):
                 return eval(node.consequence)
             elif node.alternative is not None:
@@ -18,15 +20,23 @@ def eval(node: ast.Node) -> obj.Object:
                 return obj.NULL
         case ast.ReturnStatement:
             val = eval(node.value)
+            if is_error(val):
+                return val
             return obj.ReturnValue(val)
         case ast.ExpressionStatement:
             return eval(node.expression)
         case ast.PrefixExpression:
             right = eval(node.right)
+            if is_error(right):
+                return right
             return eval_prefix_expression(node.operator, right)
         case ast.InfixExpression:
             left = eval(node.left)
+            if is_error(left):
+                return left
             right = eval(node.right)
+            if is_error(right):
+                return right
             return eval_infix_expression(node.operator, left, right)
         case ast.IntegerLiteral:
             return obj.Integer(node.value)
@@ -36,7 +46,10 @@ def eval(node: ast.Node) -> obj.Object:
             else:
                 return obj.FALSE
         case _:
-            return None
+            if node is not None and node.value == "null":
+                return obj.NULL
+            else:
+                return None
 
 
 def eval_program(stmts: List[ast.Statement]) -> obj.Object:
@@ -45,6 +58,8 @@ def eval_program(stmts: List[ast.Statement]) -> obj.Object:
         result = eval(stmt)
         if type(result) == obj.ReturnValue:
             return result.value
+        if type(result) == obj.Error:
+            return result
     return result
 
 
@@ -52,8 +67,11 @@ def eval_block_statements(stmts: List[ast.Statement]) -> obj.Object:
     result = None
     for stmt in stmts:
         result = eval(stmt)
-        if result != type(result) == obj.ReturnValue:
-            return result
+        if result is not None:
+            if type(result) == obj.ReturnValue:
+                return result
+            if type(result) == obj.Error:
+                return result
     return result
 
 
@@ -64,7 +82,7 @@ def eval_prefix_expression(op: str, right: obj.Object) -> obj.Object:
         case "-":
             return eval_minus_operator(right)
         case _:
-            return obj.NULL  # big-brain
+            return new_error(f"unknown operator: {op}{right.otype}")
 
 
 def eval_infix_expression(op: str, left: obj.Object, right: obj.Object):
@@ -72,8 +90,10 @@ def eval_infix_expression(op: str, left: obj.Object, right: obj.Object):
         return eval_integer_infix_expression(op, left, right)
     elif (type(left) == obj.Boolean) and (type(right) == obj.Boolean):
         return eval_boolean_infix_expression(op, left, right)
+    elif type(left) != type(right):
+        return new_error(f"type mismatch: {left.otype} {op} {right.otype}")
     else:
-        return obj.NULL
+        return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
 def eval_integer_infix_expression(op: str, left: obj.Integer, right: obj.Integer):
@@ -98,7 +118,7 @@ def eval_integer_infix_expression(op: str, left: obj.Integer, right: obj.Integer
         case "!=":
             return native_bool_to_obj_bool(left.value != right.value)
         case _:
-            return obj.NULL
+            return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
 def eval_boolean_infix_expression(op: str, left: obj.Boolean, right: obj.Boolean):
@@ -108,7 +128,7 @@ def eval_boolean_infix_expression(op: str, left: obj.Boolean, right: obj.Boolean
         case "!=":
             return native_bool_to_obj_bool(left != right)
         case _:
-            return obj.NULL
+            return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
 def eval_bang_operator(right: obj.Object) -> obj.Object:
@@ -132,7 +152,7 @@ def native_bool_to_obj_bool(native: bool):
 
 def eval_minus_operator(right: obj.Object) -> obj.Object:
     if type(right) != obj.Integer:
-        return obj.NULL
+        return new_error(f"unknown operator: -{right.otype}")
     return obj.Integer(-right.value)
 
 
@@ -146,3 +166,14 @@ def is_truthy(o: obj.Object):
             return False
         case _:
             return True
+
+
+def new_error(msg: str) -> obj.Error:
+    return obj.Error(msg)
+
+
+def is_error(o: obj.Object):
+    if o is not None:
+        return o.otype == obj.ERROR_OBJ
+    else:
+        return False
