@@ -44,7 +44,11 @@ class Boolean(Object):
 
     @property
     def inspect(self) -> str:
-        return str(self.value)
+        return str(self.value).lower()  # True -> true
+
+
+TRUE:  Final[Boolean] = Boolean(True)
+FALSE: Final[Boolean] = Boolean(False)
 
 
 @dataclass
@@ -56,3 +60,6 @@ class Null(Object):
     @property
     def inspect(self) -> str:
         return "null"
+
+
+NULL: Final[Null] = Null()
