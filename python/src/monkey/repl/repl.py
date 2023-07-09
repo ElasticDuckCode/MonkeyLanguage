@@ -1,7 +1,10 @@
 from typing import Final, TextIO
-from src.monkey import token, lexer, parser, eval
-import sys
 import os
+import sys
+
+from ..lexer import lexer
+from ..parser import parser
+from ..eval import eval
 
 PROMPT: Final[str] = "monke >> "
 

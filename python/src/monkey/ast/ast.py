@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import List
 
-import src.monkey.token as token
+from ..token import token
 
 
 class Node(ABC):

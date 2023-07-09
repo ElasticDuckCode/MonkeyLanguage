@@ -1,5 +1,7 @@
 from typing import List
-from src.monkey import ast, obj
+
+from ..ast import ast
+from ..obj import obj
 
 
 def eval(node: ast.Node) -> obj.Object:

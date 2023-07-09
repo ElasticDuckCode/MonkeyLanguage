@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from typing import List, Dict
 from abc import ABC, abstractmethod
 
-import src.monkey.ast as ast
-import src.monkey.lexer as lexer
-import src.monkey.token as token
+from ..ast import ast
+from ..lexer import lexer
+from ..token import token
 
 
 LOWEST, EQUALS, LESSGREATER, SUM, PRODUCT, PREFIX, CALL = range(1, 8)
