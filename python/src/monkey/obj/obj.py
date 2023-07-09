@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, List
+
+from ..ast import ast
 
 
 class ObjectType(str):
@@ -12,6 +14,7 @@ BOOLEAN_OBJ:      Final[ObjectType] = "BOOLEAN"
 NULL_OBJ:         Final[ObjectType] = "NULL"
 RETURN_VALUE_OBJ: Final[ObjectType] = "RETURN_VALUE"
 ERROR_OBJ:        Final[ObjectType] = "ERROR"
+FUNCTION_OBJ:     Final[ObjectType] = "FUNCTION"
 
 
 class Object(ABC):
@@ -89,3 +92,21 @@ class Error(Object):
     @property
     def inspect(self) -> str:
         return "ERROR: " + self.message
+
+
+@dataclass
+class Function(Object):
+    from . import env
+    parameters: List[ast.Identifier] = None
+    body: ast.BlockStatement = None
+    environment: env.Environment = None
+
+    @property
+    def otype(self) -> ObjectType: return FUNCTION_OBJ
+
+    @property
+    def inspect(self) -> str:
+        string = "fn("
+        string += ",".join([p.string for p in self.parameters]) + "\n"
+        string += self.body.string + "\n"
+        return self.string

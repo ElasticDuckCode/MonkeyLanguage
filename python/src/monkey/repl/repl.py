@@ -5,6 +5,7 @@ import sys
 from ..lexer import lexer
 from ..parser import parser
 from ..eval import eval
+from ..obj import env
 
 PROMPT: Final[str] = "monke >> "
 
@@ -19,9 +20,11 @@ def log_error(msg: str, details: str, f):
 
 
 def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
+    e = env.Environment()
 
     print(PROMPT, end="", flush=True, file=rout)
     user_input = rin.readline()
+
     while True:
         if user_input.strip() == "exit":
             break
@@ -35,11 +38,9 @@ def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
             if len(par.errors):
                 log_error("Parsing Error!", par.error_str + "\n:(", rout)
             else:
-                evaluated = eval.eval(program)
+                evaluated = eval.eval(program, e)
                 if evaluated is not None:
                     print("[Output] " + evaluated.inspect + "\n", file=rout)
-                else:
-                    log_error("Evaluation failed!", "\n:(", rout)
 
         print(PROMPT, end="", flush=True, file=rout)
         user_input = rin.readline()

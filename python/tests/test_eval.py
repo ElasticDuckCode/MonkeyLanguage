@@ -1,16 +1,17 @@
 from unittest import main, TestCase
-from src.monkey import lexer, parser, obj, eval
+from src.monkey import lexer, parser, obj, eval, env
 
 
 class TestEval(TestCase):
 
     def verify_eval(self, code: str) -> obj.Object:
+        e = env.Environment()
         lex = lexer.Lexer(code)
         par = parser.Parser(lex)
         program = par.parse_program()
         self.assertIsNotNone(program)
         self.assertEqual(len(par.errors), 0, par.error_str)
-        return eval.eval(program)
+        return eval.eval(program, e)
 
     def verify_integer_obj(self, o: obj.Integer, expect: int):
         self.assertIsInstance(o, obj.Integer)
@@ -146,3 +147,33 @@ class TestEval(TestCase):
             o = self.verify_eval(code)
             self.assertIsInstance(o, obj.Error)
             self.assertEqual(o.message, expect)
+
+    def test_eval_function_define(self):
+        code = "fn(x) { x + 2; };"
+        evaluated = self.verify_eval(code)
+        self.assertIsInstance(evaluated, obj.Function)
+        self.assertEqual(len(evaluated.parameters), 1)
+        self.assertEqual(evaluated.parameters[0].string, "x")
+        self.assertEqual(evaluated.body.string, "(x + 2)")
+
+    def test_eval_function_call(self):
+        cases = (
+            ("let identity = fn(x) { x; }; identity(5);", 5),
+            ("let identity = fn(x) { return x; }; identity(5);", 5),
+            ("let double = fn(x) { x * 2; }; double(5);", 10),
+            ("let add = fn(x,y) { x + y; }; add(5,5);", 10),
+            ("let add = fn(x,y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+            ("fn(x) { x; }(5);", 5),
+        )
+        for code, expect in cases:
+            self.verify_integer_obj(self.verify_eval(code), expect)
+
+    def test_eval_closures(self):
+        code = """\
+        let newAdder = fn(x) {\
+            fn(y) { x + y };\
+        }\
+        let addTwo = newAdder(2);\
+        addTwo(2);\
+        """
+        self.verify_integer_obj(self.verify_eval(code), 4)

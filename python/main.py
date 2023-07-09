@@ -1,6 +1,5 @@
 import os
-# import src.monkey.repl as repl
-from src.monkey.repl import start
+from src.monkey import repl
 
 TEXT = r"""
                               _
@@ -37,7 +36,7 @@ def main():
     print(ICON)
     print(f"Hello {user}! This is the Monkey programming language!")
     print("Feel free to type in commands.")
-    start()
+    repl.start()
     return
 
 
