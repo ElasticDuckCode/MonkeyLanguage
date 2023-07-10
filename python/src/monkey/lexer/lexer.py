@@ -114,6 +114,10 @@ class Lexer:
                 tok = token.Token(token.LBRACE, chr(self.ch))
             case '}':
                 tok = token.Token(token.RBRACE, chr(self.ch))
+            case '[':
+                tok = token.Token(token.LBRACKET, chr(self.ch))
+            case ']':
+                tok = token.Token(token.RBRACKET, chr(self.ch))
             case '\0':
                 tok = token.Token(token.EOF, "")
             case '"':

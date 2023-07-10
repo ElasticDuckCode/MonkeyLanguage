@@ -44,6 +44,19 @@ def eval(node: ast.Node, e: env.Environment) -> obj.Object:
             if len(args) == 1 and is_error(args[0]):
                 return args[0]
             return apply_function(function, args)
+        case ast.ArrayLiteral:
+            elements = eval_expressions(node.elements, e)
+            if len(elements) == 1 and is_error(elements[0]):
+                return elements[0]
+            return obj.Array(elements)
+        case ast.IndexExpression:
+            left = eval(node.left, e)
+            if is_error(left):
+                return left
+            index = eval(node.index, e)
+            if is_error(index):
+                return index
+            return eval_index_expression(left, index)
         case ast.ExpressionStatement:
             return eval(node.expression, e)
         case ast.PrefixExpression:
@@ -205,6 +218,20 @@ def eval_string_infix_expression(op: str, left: obj.String, right: obj.String, e
             return obj.String(left.value + right.value)
         case _:
             return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
+
+
+def eval_index_expression(left: obj.Object, index: obj.Object):
+    if (type(left) == obj.Array) and (type(index) == obj.Integer):
+        return eval_array_integer_index_expression(left, index)
+    return new_error(f"index operator not supported: {left.otype}")
+
+
+def eval_array_integer_index_expression(left: obj.Array, index: obj.Integer):
+    array = left.elements
+    idx = index.value
+    if (idx < 0) or (idx >= len(array)):
+        return obj.NULL
+    return array[idx]
 
 
 def eval_bang_operator(right: obj.Object, e: env.Environment) -> obj.Object:

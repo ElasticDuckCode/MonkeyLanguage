@@ -6,7 +6,7 @@ from ..lexer import lexer
 from ..token import token
 
 
-LOWEST, EQUALS, LESSGREATER, SUM, PRODUCT, PREFIX, CALL = range(1, 8)
+LOWEST, EQUALS, LESSGREATER, SUM, PRODUCT, PREFIX, CALL, INDEX = range(1, 9)
 precidences = {
     token.EQ:       EQUALS,
     token.NOT_EQ:   EQUALS,
@@ -16,7 +16,8 @@ precidences = {
     token.MINUS:    SUM,
     token.SLASH:    PRODUCT,
     token.ASTERISK: PRODUCT,
-    token.LPAREN:   CALL
+    token.LPAREN:   CALL,
+    token.LBRACKET: INDEX
 }
 
 
@@ -52,6 +53,7 @@ class Parser:
         self.register_prefix(token.BANG, self.parse_prefix_expression)
         self.register_prefix(token.MINUS, self.parse_prefix_expression)
         self.register_prefix(token.LPAREN, self.parse_group_expression)
+        self.register_prefix(token.LBRACKET, self.parse_array_literal)
         self.register_prefix(token.IF, self.parse_if_expression)
         self.register_prefix(token.FUNCTION, self.parse_function_literal)
 
@@ -64,6 +66,7 @@ class Parser:
         self.register_infix(token.LT, self.parse_infix_expression)
         self.register_infix(token.GT, self.parse_infix_expression)
         self.register_infix(token.LPAREN, self.parse_call_expression)
+        self.register_infix(token.LBRACKET, self.parse_index_expression)
 
     @ property
     def errors(self):
@@ -284,26 +287,39 @@ class Parser:
 
         return idents
 
-    def parse_call_expression(self, f: ast.Expression) -> ast.Expression:
-        tok = self.curr_token
-        args = self.parse_call_arguements()
-        return ast.CallExpression(tok, f, args)
-
-    def parse_call_arguements(self) -> ast.Expression:
-        args = []
-        if self.is_peek_token(token.RPAREN):
+    def parse_expression_list(self, end: token.TokenType) -> ast.Expression:
+        exps = []
+        if self.is_peek_token(end):
             self.next_token()
-            return args
+            return exps
         while True:
             self.next_token()
-            args.append(self.parse_expression(LOWEST))
+            exps.append(self.parse_expression(LOWEST))
             if not self.is_peek_token(token.COMMA):
                 break
             else:
                 self.next_token()
-        if not self.expect_peek(token.RPAREN):
+        if not self.expect_peek(end):
             return None
-        return args
+        return exps
+
+    def parse_call_expression(self, f: ast.Expression) -> ast.Expression:
+        tok = self.curr_token
+        args = self.parse_expression_list(token.RPAREN)
+        return ast.CallExpression(tok, f, args)
+
+    def parse_index_expression(self, left: ast.Expression) -> ast.Expression:
+        tok = self.curr_token
+        self.next_token()
+        index = self.parse_expression(LOWEST)
+        if not self.expect_peek(token.RBRACKET):
+            return None
+        return ast.IndexExpression(tok, left, index)
+
+    def parse_array_literal(self) -> ast.Expression:
+        tok = self.curr_token
+        elements = self.parse_expression_list(token.RBRACKET)
+        return ast.ArrayLiteral(tok, elements)
 
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t

@@ -28,6 +28,8 @@ else {
 "foo\\bar"
 "foo\"bar"
 "hello\n world"
+[1, 2];
+[];
 '''
 
 
@@ -133,6 +135,15 @@ class TestToken(TestCase):
             (token.STRING, "foo\\bar"),
             (token.STRING, "foo\"bar"),
             (token.STRING, "hello\n world"),
+            (token.LBRACKET, "["),
+            (token.INT, "1"),
+            (token.COMMA, ","),
+            (token.INT, "2"),
+            (token.RBRACKET, "]"),
+            (token.SEMICOLON, ";"),
+            (token.LBRACKET, "["),
+            (token.RBRACKET, "]"),
+            (token.SEMICOLON, ";"),
             (token.EOF, ""),
         ]
         for token_type, literal in expected:

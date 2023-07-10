@@ -5,7 +5,6 @@ from ..obj import obj
 
 
 def _monkey_builtin_len(*args: Tuple[obj.Object]) -> obj.Object:
-    print(args)
     from .eval import new_error
     if len(args) != 1:
         return new_error(f"wrong number of arguements. got={len(args)}, want=1")

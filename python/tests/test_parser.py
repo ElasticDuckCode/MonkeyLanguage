@@ -207,7 +207,10 @@ class TestParser(TestCase):
             ("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"),
             ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
             ("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"),
-            ("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
+            (
+                "3 + 4 * 5 == 3 * 1 + 4 * 5",
+                "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"
+            ),
             ("true", "true"),
             ("false", "false"),
             ("3 > 5 == false", "((3 > 5) == false)"),
@@ -219,9 +222,22 @@ class TestParser(TestCase):
             ("-(5 + 5)", "(-(5 + 5))"),
             ("!(true == true)", "(!(true == true))"),
             ("a + add(b * c) + d", "((a + add((b * c))) + d)"),
-            ("add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-             "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"),
-            ("add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"),
+            (
+                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"
+            ),
+            (
+                "add(a + b + c * d / f + g)",
+                "add((((a + b) + ((c * d) / f)) + g))"
+            ),
+            (
+                "a * [1, 2, 3, 4][b * c] * d",
+                "((a * ([1, 2, 3, 4][(b * c)])) * d)",
+            ),
+            (
+                "add(a * b[2], b[1], 2 * [1, 2][1])",
+                "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+            ),
         ]
 
         for code, expected in code_examples:
@@ -404,6 +420,49 @@ class TestParser(TestCase):
         stmt = program.statements[0]
         self.assertIsInstance(stmt, ast.ExpressionStatement)
         self.verify_string_literal(stmt.expression, expected)
+
+    def test_parser_array_literal(self):
+        code = "[1, 2 * 2, 3 + 3];"
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        array = stmt.expression
+        self.verify_integer_literal(array.elements[0], 1)
+        self.verify_infix_expression(array.elements[1], 2, "*", 2)
+        self.verify_infix_expression(array.elements[2], 3, "+", 3)
+
+        code = "[];"
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        array = stmt.expression
+        self.assertEqual(len(array.elements), 0)
+
+    def test_parser_index_expression(self):
+        code = 'myArray[1 + 1];'
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        exp = stmt.expression
+        self.assertIsInstance(exp, ast.IndexExpression)
+        self.verify_identifier(exp.left, "myArray")
+        self.verify_infix_expression(exp.index, 1, "+", 1)
+        # self.assertEqual(exp.string, "(myArray[1 + 1])")
 
 
 if __name__ == "__main__":

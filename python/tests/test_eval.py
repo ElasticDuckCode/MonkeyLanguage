@@ -214,3 +214,32 @@ class TestEval(TestCase):
             else:
                 self.assertIsInstance(o, obj.Error)
                 self.assertEqual(o.message, expect)
+
+    def test_array_litearls(self):
+        code = "[1, 2 * 2, 3 + 3]"
+        o = self.verify_eval(code)
+        self.assertIsInstance(o, obj.Array)
+        self.assertEqual(len(o.elements), 3)
+        self.verify_integer_obj(o.elements[0], 1)
+        self.verify_integer_obj(o.elements[1], 4)
+        self.verify_integer_obj(o.elements[2], 6)
+
+    def test_index_expressions(self):
+        cases = (
+            ("[1, 2, 3][0]", 1,),
+            ("[1, 2, 3][1]", 2,),
+            ("[1, 2, 3][2]", 3,),
+            ("let i = 0; [1][i];", 1,),
+            ("[1, 2, 3][1 + 1];", 3,),
+            ("let myArray = [1, 2, 3]; myArray[2];", 3,),
+            ("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6,),
+            ("let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2,),
+            ("[1, 2, 3][3]", None,),
+            ("[1, 2, 3][-1]", None,),
+        )
+        for code, expect in cases:
+            o = self.verify_eval(code)
+            if type(expect) == int:
+                self.verify_integer_obj(o, expect)
+            else:
+                self.verify_null_obj(o)

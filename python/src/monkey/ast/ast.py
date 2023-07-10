@@ -160,6 +160,22 @@ class StringLiteral(Expression):
 
 
 @dataclass
+class ArrayLiteral(Expression):
+    tok: token.Token = None
+    elements: List[Expression] = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        return "[" + ", ".join([s.string for s in self.elements]) + "]"
+
+
+@dataclass
 class Boolean(Expression):
     tok: token.Token = None
     value: bool = None
@@ -285,3 +301,21 @@ class CallExpression(Expression):
         string = self.function.string
         string += "(" + ", ".join([a.string for a in self.arguements]) + ")"
         return string
+
+
+@dataclass
+class IndexExpression(Expression):
+    tok: token.Token = None
+    left: Expression = None
+    index: Expression = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        s = "(" + self.left.string + "[" + self.index.string + "]" + ")"
+        return s

@@ -16,6 +16,7 @@ RETURN_VALUE_OBJ: Final[ObjectType] = ObjectType("RETURN_VALUE")
 ERROR_OBJ:        Final[ObjectType] = ObjectType("ERROR")
 FUNCTION_OBJ:     Final[ObjectType] = ObjectType("FUNCTION")
 BUILTIN_OBJ:      Final[ObjectType] = ObjectType("BUILTIN")
+ARRAY_OBJ:        Final[ObjectType] = ObjectType("ARRAY")
 
 
 class Object(ABC):
@@ -125,13 +126,26 @@ class Function(Object):
         return self.string
 
 
-@dataclass
+@ dataclass
 class BuiltIn(Object):
+
     fn: Callable[[Tuple[Object, ...]], Object] = None
 
-    @property
+    @ property
     def otype(self) -> ObjectType: return BUILTIN_OBJ
 
-    @property
+    @ property
     def inspect(self) -> str:
         return "builtin function"
+
+
+@ dataclass
+class Array(Object):
+    elements: List[Object] = None
+
+    @ property
+    def otype(self) -> ObjectType: return ARRAY_OBJ
+
+    @ property
+    def inspect(self) -> str:
+        return "[" + ", ".join([e.inspect for e in self.elements]) + "]"
