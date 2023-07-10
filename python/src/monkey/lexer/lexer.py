@@ -46,7 +46,7 @@ class Lexer:
             self.read_char()
         return self.input[start:self.position]
 
-    def read_number(self) -> None:
+    def read_number(self) -> str:
         start = self.position
         while self.is_number():
             self.read_char()

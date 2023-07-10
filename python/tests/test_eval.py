@@ -198,3 +198,19 @@ class TestEval(TestCase):
         x + " " + y;
         """
         self.verify_string_obj(self.verify_eval(code), "hello world")
+
+    def test_eval_builtins(self):
+        cases = (
+            ('len("")', 0),
+            ('len("four")', 4),
+            ('len("hello world")', 11),
+            ('len(1)', "arguement to `len` not supported. got INTEGER"),
+            ('len("one", "two")', "wrong number of arguements. got=2, want=1"),
+        )
+        for code, expect in cases:
+            o = self.verify_eval(code)
+            if type(expect) == int:
+                self.verify_integer_obj(o, expect)
+            else:
+                self.assertIsInstance(o, obj.Error)
+                self.assertEqual(o.message, expect)

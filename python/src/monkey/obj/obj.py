@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Final, NewType, List, Callable
+from typing import Final, NewType, List, Callable, Tuple
 
 from ..ast import ast
 
@@ -8,14 +8,14 @@ from ..ast import ast
 ObjectType = NewType('ObjectType', str)
 
 
-INTEGER_OBJ:      Final[ObjectType] = "INTEGER"
-BOOLEAN_OBJ:      Final[ObjectType] = "BOOLEAN"
-STRING_OBJ:       Final[ObjectType] = "STRING"
-NULL_OBJ:         Final[ObjectType] = "NULL"
-RETURN_VALUE_OBJ: Final[ObjectType] = "RETURN_VALUE"
-ERROR_OBJ:        Final[ObjectType] = "ERROR"
-FUNCTION_OBJ:     Final[ObjectType] = "FUNCTION"
-BUILTIN_OBJ:      Final[ObjectType] = "BUILTIN"
+INTEGER_OBJ:      Final[ObjectType] = ObjectType("INTEGER")
+BOOLEAN_OBJ:      Final[ObjectType] = ObjectType("BOOLEAN")
+STRING_OBJ:       Final[ObjectType] = ObjectType("STRING")
+NULL_OBJ:         Final[ObjectType] = ObjectType("NULL")
+RETURN_VALUE_OBJ: Final[ObjectType] = ObjectType("RETURN_VALUE")
+ERROR_OBJ:        Final[ObjectType] = ObjectType("ERROR")
+FUNCTION_OBJ:     Final[ObjectType] = ObjectType("FUNCTION")
+BUILTIN_OBJ:      Final[ObjectType] = ObjectType("BUILTIN")
 
 
 class Object(ABC):
@@ -127,7 +127,7 @@ class Function(Object):
 
 @dataclass
 class BuiltIn(Object):
-    fn: Callable = None
+    fn: Callable[[Tuple[Object, ...]], Object] = None
 
     @property
     def otype(self) -> ObjectType: return BUILTIN_OBJ

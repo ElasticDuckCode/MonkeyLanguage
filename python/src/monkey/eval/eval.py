@@ -3,6 +3,7 @@ from typing import List
 from ..ast import ast
 from ..obj import obj
 from ..obj import env
+from .builtin import BuiltIn
 
 
 def eval(node: ast.Node, e: env.Environment) -> obj.Object:
@@ -92,12 +93,14 @@ def eval_expressions(exps: List[ast.Expression], e: env.Environment) -> List[obj
     return result
 
 
-def apply_function(fn: obj.Function, args: List[ast.Expression]):
-    if type(fn) != obj.Function:
-        return new_error(f"not a function: {fn.otype}")
-    extended_e = extend_function_environment(fn, args)
-    evaluated = eval(fn.body, extended_e)
-    return unwrap_return_value(evaluated)
+def apply_function(fn: obj.Object, args: List[ast.Expression]):
+    if type(fn) == obj.Function:
+        extended_e = extend_function_environment(fn, args)
+        evaluated = eval(fn.body, extended_e)
+        return unwrap_return_value(evaluated)
+    elif type(fn) == obj.BuiltIn:
+        return fn.fn(*args)
+    return new_error(f"not a function: {fn.otype}")
 
 
 def extend_function_environment(fn: obj.Function, args: List[ast.Expression]):
@@ -130,9 +133,12 @@ def eval_identifier(node: ast.Node, e: env.Environment) -> obj.Object:
     if node is not None and node.value == "null":
         return obj.NULL
     val = e.get(node.value)
-    if val is None:
-        return new_error(f"identifier not found: {node.value}")
-    return val
+    if val:
+        return val
+    blt = BuiltIn[node.value]
+    if blt:
+        return blt
+    return new_error(f"identifier not found: {node.value}")
 
 
 def eval_prefix_expression(op: str, right: obj.Object, e: env.Environment) -> obj.Object:

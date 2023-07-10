@@ -5,37 +5,37 @@ from typing import Final, NewType
 TokenType = NewType('TokenType', str)
 
 
-ILLEGAL:   Final[TokenType] = "ILLEGAL"
-EOF:       Final[TokenType] = "EOF"
-IDENT:     Final[TokenType] = "INDENT"
-INT:       Final[TokenType] = "INT"
-STRING:    Final[TokenType] = "STRING"
-ASSIGN:    Final[TokenType] = "="
-PLUS:      Final[TokenType] = "+"
-MINUS:     Final[TokenType] = "-"
-BANG:      Final[TokenType] = "!"
-ASTERISK:  Final[TokenType] = "*"
-SLASH:     Final[TokenType] = "/"
-LT:        Final[TokenType] = "<"
-GT:        Final[TokenType] = ">"
-EQ:        Final[TokenType] = "=="
-NOT_EQ:    Final[TokenType] = "!="
-COMMA:     Final[TokenType] = ","
-SEMICOLON: Final[TokenType] = ";"
-LPAREN:    Final[TokenType] = "("
-RPAREN:    Final[TokenType] = ")"
-LBRACE:    Final[TokenType] = "{"
-RBRACE:    Final[TokenType] = "}"
-FUNCTION:  Final[TokenType] = "FUNCTION"
-LET:       Final[TokenType] = "LET"
-TRUE:      Final[TokenType] = "TRUE"
-FALSE:     Final[TokenType] = "FALSE"
-IF:        Final[TokenType] = "IF"
-ELSE:      Final[TokenType] = "ELSE"
-RETURN:    Final[TokenType] = "RETURN"
+ILLEGAL:   Final[TokenType] = TokenType("ILLEGAL")
+EOF:       Final[TokenType] = TokenType("EOF")
+IDENT:     Final[TokenType] = TokenType("INDENT")
+INT:       Final[TokenType] = TokenType("INT")
+STRING:    Final[TokenType] = TokenType("STRING")
+ASSIGN:    Final[TokenType] = TokenType("=")
+PLUS:      Final[TokenType] = TokenType("+")
+MINUS:     Final[TokenType] = TokenType("-")
+BANG:      Final[TokenType] = TokenType("!")
+ASTERISK:  Final[TokenType] = TokenType("*")
+SLASH:     Final[TokenType] = TokenType("/")
+LT:        Final[TokenType] = TokenType("<")
+GT:        Final[TokenType] = TokenType(">")
+EQ:        Final[TokenType] = TokenType("==")
+NOT_EQ:    Final[TokenType] = TokenType("!=")
+COMMA:     Final[TokenType] = TokenType(",")
+SEMICOLON: Final[TokenType] = TokenType(";")
+LPAREN:    Final[TokenType] = TokenType("(")
+RPAREN:    Final[TokenType] = TokenType(")")
+LBRACE:    Final[TokenType] = TokenType("{")
+RBRACE:    Final[TokenType] = TokenType("}")
+FUNCTION:  Final[TokenType] = TokenType("FUNCTION")
+LET:       Final[TokenType] = TokenType("LET")
+TRUE:      Final[TokenType] = TokenType("TRUE")
+FALSE:     Final[TokenType] = TokenType("FALSE")
+IF:        Final[TokenType] = TokenType("IF")
+ELSE:      Final[TokenType] = TokenType("ELSE")
+RETURN:    Final[TokenType] = TokenType("RETURN")
 
 
-KEYWORDS: Final[dict[TokenType]] = {
+KEYWORDS: Final[dict[str, TokenType]] = {
     "fn": FUNCTION,
     "let": LET,
     "true": TRUE,
