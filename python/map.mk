@@ -11,5 +11,5 @@ let map = fn(arr, f) {
 };
 
 let a = [1, 2, 3, 4];
-let double = fn(x) { x * 2 };
-map(a, double)
+let double = fn(x) { x + x };
+map(a, double);

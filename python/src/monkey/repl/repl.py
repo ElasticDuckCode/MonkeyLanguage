@@ -47,7 +47,6 @@ def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
             user_input = rin.readline()
     else:
         code = "".join(rin.readlines())
-        print(code)
         lex = lexer.Lexer(code)
         par = parser.Parser(lex)
         program = par.parse_program()
