@@ -30,6 +30,7 @@ else {
 "hello\n world"
 [1, 2];
 [];
+{ "hello" : 5 };
 '''
 
 
@@ -143,6 +144,12 @@ class TestToken(TestCase):
             (token.SEMICOLON, ";"),
             (token.LBRACKET, "["),
             (token.RBRACKET, "]"),
+            (token.SEMICOLON, ";"),
+            (token.LBRACE, "{"),
+            (token.STRING, "hello"),
+            (token.COLON, ":"),
+            (token.INT, "5"),
+            (token.RBRACE, "}"),
             (token.SEMICOLON, ";"),
             (token.EOF, ""),
         ]

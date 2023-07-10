@@ -85,6 +85,8 @@ class Lexer:
                     tok = token.Token(token.ASSIGN, chr(self.ch))
             case ';':
                 tok = token.Token(token.SEMICOLON, chr(self.ch))
+            case ':':
+                tok = token.Token(token.COLON, chr(self.ch))
             case '(':
                 tok = token.Token(token.LPAREN, chr(self.ch))
             case ')':
