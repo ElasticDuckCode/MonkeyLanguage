@@ -1,5 +1,6 @@
 from unittest import main, TestCase
 from src.monkey import lexer, parser, obj, eval, env
+from pprint import pprint
 
 
 class TestEval(TestCase):
@@ -206,14 +207,50 @@ class TestEval(TestCase):
             ('len("hello world")', 11),
             ('len(1)', "arguement to `len` not supported. got INTEGER"),
             ('len("one", "two")', "wrong number of arguements. got=2, want=1"),
+            ('len([1, 2])', 2),
+            ('len([2 * 4, 2])', 2),
+            ('len([1, 2, 3, 4, 5])', 5),
+            ('len([1],[1])', "wrong number of arguements. got=2, want=1"),
+            ('first([1, 2, 3, 4, 5])', 1),
+            ('first([2 * 4, 2])', 8),
+            ('first([1],[1])', "wrong number of arguements. got=2, want=1"),
+            ('first([])', None),
+            ('last([1, 2, 3, 4, 5])', 5),
+            ('last([2 * 4, 2])', 2),
+            ('last([1],[1])', "wrong number of arguements. got=2, want=1"),
+            ('last([])', None),
+            ('rest([1, 2, 3, 4, 5])', [2, 3, 4, 5]),
+            ('rest([2 * 4, 2])', [2]),
+            ('rest([1],[1])', "wrong number of arguements. got=2, want=1"),
+            ('rest([])', None),
+            ('rest(rest([1, 2, 3, 4, 5]))', [3, 4, 5]),
+            ('rest(rest(rest([1, 2, 3, 4, 5])))', [4, 5]),
+            ('rest(rest(rest(rest([1, 2, 3, 4, 5]))))', [5]),
+            ('rest(rest(rest(rest(rest([1, 2, 3, 4, 5])))))', None),
+            ('push([1, 2, 3], 4)', [1, 2, 3, 4]),
+            ('push([1, 2, 3], [4, 5])', [1, 2, 3, [4, 5]]),
+            ('push([1])', "wrong number of arguements. got=1, want=2"),
+            ('push([1],[2, 3], [4])',
+             "wrong number of arguements. got=3, want=2"),
+            ('push([], 4)', [4]),
         )
         for code, expect in cases:
             o = self.verify_eval(code)
             if type(expect) == int:
                 self.verify_integer_obj(o, expect)
-            else:
+            elif type(expect) == str:
                 self.assertIsInstance(o, obj.Error)
                 self.assertEqual(o.message, expect)
+            elif type(expect) == list:
+                self.assertIsInstance(o, obj.Array)
+                for i, val in enumerate(o.elements):
+                    if type(expect[i]) == list:
+                        for j, vall in enumerate(val.elements):
+                            self.verify_integer_obj(vall, expect[i][j])
+                    else:
+                        self.verify_integer_obj(val, expect[i])
+            else:
+                self.verify_null_obj(o)
 
     def test_array_litearls(self):
         code = "[1, 2 * 2, 3 + 3]"
@@ -226,16 +263,17 @@ class TestEval(TestCase):
 
     def test_index_expressions(self):
         cases = (
-            ("[1, 2, 3][0]", 1,),
-            ("[1, 2, 3][1]", 2,),
-            ("[1, 2, 3][2]", 3,),
-            ("let i = 0; [1][i];", 1,),
-            ("[1, 2, 3][1 + 1];", 3,),
-            ("let myArray = [1, 2, 3]; myArray[2];", 3,),
-            ("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6,),
-            ("let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2,),
-            ("[1, 2, 3][3]", None,),
-            ("[1, 2, 3][-1]", None,),
+            ("[1, 2, 3][0]", 1),
+            ("[1, 2, 3][1]", 2),
+            ("[1, 2, 3][2]", 3),
+            ("let i = 0; [1][i];", 1),
+            ("[1, 2, 3][1 + 1];", 3),
+            ("let myArray = [1, 2, 3]; myArray[2];", 3),
+            ("let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6),
+            ("let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2),
+            ("[1, 2, 3][3]", None),
+            ("[1, 2, 3][-1]", 3),
+            ("[1, 2, 3][-4]", None),
         )
         for code, expect in cases:
             o = self.verify_eval(code)

@@ -229,9 +229,9 @@ def eval_index_expression(left: obj.Object, index: obj.Object):
 def eval_array_integer_index_expression(left: obj.Array, index: obj.Integer):
     array = left.elements
     idx = index.value
-    if (idx < 0) or (idx >= len(array)):
+    if (idx < -len(array)) or (idx >= len(array)):
         return obj.NULL
-    return array[idx]
+    return array[idx % len(array)]
 
 
 def eval_bang_operator(right: obj.Object, e: env.Environment) -> obj.Object:
