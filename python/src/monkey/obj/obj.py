@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Final, NewType, List, Callable, Tuple
+from typing import Final, NewType, List, Callable, Tuple, Dict
 
 from ..ast import ast
 
@@ -17,8 +17,10 @@ ERROR_OBJ:        Final[ObjectType] = ObjectType("ERROR")
 FUNCTION_OBJ:     Final[ObjectType] = ObjectType("FUNCTION")
 BUILTIN_OBJ:      Final[ObjectType] = ObjectType("BUILTIN")
 ARRAY_OBJ:        Final[ObjectType] = ObjectType("ARRAY")
+HASH_OBJ:         Final[ObjectType] = ObjectType("HASH")
 
 
+@dataclass(eq=True, frozen=True)
 class Object(ABC):
 
     @property
@@ -30,7 +32,7 @@ class Object(ABC):
     def inspect(self) -> str: pass
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Integer(Object):
     value: int = None
 
@@ -42,7 +44,7 @@ class Integer(Object):
         return str(self.value)
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class String(Object):
     value: str = None
 
@@ -54,7 +56,7 @@ class String(Object):
         return str(self.value)
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Boolean(Object):
     value: bool = None
 
@@ -70,7 +72,7 @@ TRUE:  Final[Boolean] = Boolean(True)
 FALSE: Final[Boolean] = Boolean(False)
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Null(Object):
 
     @property
@@ -84,7 +86,7 @@ class Null(Object):
 NULL: Final[Null] = Null()
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class ReturnValue(Object):
     value: Object = None
 
@@ -96,7 +98,7 @@ class ReturnValue(Object):
         return self.value.inspect
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Error(Object):
     message: str = None
 
@@ -108,7 +110,7 @@ class Error(Object):
         return "ERROR: " + self.message
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Function(Object):
     from . import env
     parameters: List[ast.Identifier] = None
@@ -126,26 +128,41 @@ class Function(Object):
         return self.string
 
 
-@ dataclass
+@dataclass(eq=True, frozen=True)
 class BuiltIn(Object):
 
     fn: Callable[[Tuple[Object, ...]], Object] = None
 
-    @ property
+    @property
     def otype(self) -> ObjectType: return BUILTIN_OBJ
 
-    @ property
+    @property
     def inspect(self) -> str:
         return "builtin function"
 
 
-@ dataclass
+@dataclass(eq=True, frozen=True)
 class Array(Object):
     elements: List[Object] = None
 
-    @ property
+    @property
     def otype(self) -> ObjectType: return ARRAY_OBJ
 
-    @ property
+    @property
     def inspect(self) -> str:
         return "[" + ", ".join([e.inspect for e in self.elements]) + "]"
+
+
+@dataclass(eq=True, frozen=True)
+class Hash(Object):
+    pairs: Dict[Object, Object] = None
+
+    @property
+    def otype(self) -> ObjectType: return HASH_OBJ
+
+    @property
+    def inspect(self) -> str:
+        pair_strs = []
+        for pair in self.pairs.items():
+            pair_strs.append(pair[0].inspect + ": " + pair[1].inspect)
+        return "{" + ", ".join(pair_strs) + "}"

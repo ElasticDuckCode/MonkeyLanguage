@@ -49,7 +49,7 @@ KEYWORDS: Final[dict[str, TokenType]] = {
 }
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Token:
     token_type: TokenType
     literal: str

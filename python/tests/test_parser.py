@@ -462,7 +462,47 @@ class TestParser(TestCase):
         self.assertIsInstance(exp, ast.IndexExpression)
         self.verify_identifier(exp.left, "myArray")
         self.verify_infix_expression(exp.index, 1, "+", 1)
-        # self.assertEqual(exp.string, "(myArray[1 + 1])")
+        self.assertEqual(exp.string, "(myArray[(1 + 1)])")
+
+    def test_parser_hash_literals_string_keys(self):
+        code = '{"one": 1, "two": 2, "three": 3}'
+        expect = (
+            ("one", 1),
+            ("two", 2),
+            ("three", 3),
+        )
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        exp = stmt.expression
+        self.assertIsInstance(exp, ast.HashLiteral)
+        self.assertEqual(len(exp.pairs), 3)
+        for i, [key, val] in enumerate(exp.pairs.items()):
+            self.assertIsInstance(key, ast.StringLiteral)
+            self.verify_string_literal(key, expect[i][0])
+            self.verify_integer_literal(val, expect[i][1])
+        self.assertEqual(exp.string, "{one: 1, two: 2, three: 3}")
+
+        code = '{}'
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+        self.assertIsNotNone(program)
+        self.assertEqual(len(par.errors), 0, par.error_str)
+        self.assertEqual(len(program.statements), 1)
+        stmt = program.statements[0]
+        self.assertIsInstance(stmt, ast.ExpressionStatement)
+        exp = stmt.expression
+        self.assertIsInstance(exp, ast.HashLiteral)
+        self.assertEqual(len(exp.pairs), 0)
+        self.assertEqual(exp.string, "{}")
+
+        # TODO: with infix
 
 
 if __name__ == "__main__":

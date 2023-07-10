@@ -54,6 +54,7 @@ class Parser:
         self.register_prefix(token.MINUS, self.parse_prefix_expression)
         self.register_prefix(token.LPAREN, self.parse_group_expression)
         self.register_prefix(token.LBRACKET, self.parse_array_literal)
+        self.register_prefix(token.LBRACE, self.parser_hash_literal)
         self.register_prefix(token.IF, self.parse_if_expression)
         self.register_prefix(token.FUNCTION, self.parse_function_literal)
 
@@ -320,6 +321,24 @@ class Parser:
         tok = self.curr_token
         elements = self.parse_expression_list(token.RBRACKET)
         return ast.ArrayLiteral(tok, elements)
+
+    def parser_hash_literal(self) -> ast.Expression:
+        tok = self.curr_token
+        pairs = dict()
+        while not self.is_peek_token(token.RBRACE):
+            self.next_token()
+            key = self.parse_expression(LOWEST)
+            if not self.expect_peek(token.COLON):
+                return None
+            self.next_token()
+            value = self.parse_expression(LOWEST)
+            pairs[key] = value
+            if not self.is_peek_token(token.RBRACE):
+                if not self.expect_peek(token.COMMA):
+                    return None
+        if not self.expect_peek(token.RBRACE):
+            return None
+        return ast.HashLiteral(tok, pairs)
 
     def is_curr_token(self, t: token.TokenType) -> bool:
         return self.curr_token.token_type == t

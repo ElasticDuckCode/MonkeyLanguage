@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Dict
 
 from ..token import token
 
 
+@dataclass(eq=True, frozen=True)
 class Node(ABC):
     @property
     @abstractmethod
@@ -14,19 +15,19 @@ class Node(ABC):
     def string(self) -> str: pass
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Statement(Node):
     @abstractmethod
     def statement_node(self) -> None: pass
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Expression(Node):
     @abstractmethod
     def expression_node(self) -> None: pass
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Program(Node):
     """Serves as the root node of the AST
     """
@@ -47,7 +48,7 @@ class Program(Node):
         return out
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class Identifier(Expression):
     tok: token.Token = None
     value: str = None
@@ -63,7 +64,7 @@ class Identifier(Expression):
         return self.value
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class LetStatement(Statement):
     tok: token.Token = None
     name: Identifier = None
@@ -87,7 +88,7 @@ class LetStatement(Statement):
         return out
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class ReturnStatement(Statement):
     tok: token.Token = None
     value: Expression = None
@@ -108,7 +109,7 @@ class ReturnStatement(Statement):
         return out
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class ExpressionStatement(Statement):
     tok: token.Token = None
     expression: Expression = None
@@ -127,7 +128,7 @@ class ExpressionStatement(Statement):
         return out
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class IntegerLiteral(Expression):
     tok: token.Token = None
     value: int = None
@@ -143,7 +144,7 @@ class IntegerLiteral(Expression):
         return self.tok.literal
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class StringLiteral(Expression):
     tok: token.Token = None
     value: str = None
@@ -159,7 +160,7 @@ class StringLiteral(Expression):
         return self.tok.literal
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class ArrayLiteral(Expression):
     tok: token.Token = None
     elements: List[Expression] = None
@@ -175,7 +176,26 @@ class ArrayLiteral(Expression):
         return "[" + ", ".join([s.string for s in self.elements]) + "]"
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
+class HashLiteral(Expression):
+    tok: token.Token = None
+    pairs: Dict[Expression, Expression] = None
+
+    def expression_node(self) -> None: return
+
+    @property
+    def token_literal(self) -> str:
+        return self.tok.literal
+
+    @property
+    def string(self) -> str:
+        pair_strs = []
+        for pair in self.pairs.items():
+            pair_strs.append(pair[0].string + ": " + pair[1].string)
+        return "{" + ", ".join(pair_strs) + "}"
+
+
+@dataclass(eq=True, frozen=True)
 class Boolean(Expression):
     tok: token.Token = None
     value: bool = None
@@ -191,7 +211,7 @@ class Boolean(Expression):
         return self.tok.literal
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class PrefixExpression(Expression):
     tok: token.Token = None
     operator: str = None
@@ -208,7 +228,7 @@ class PrefixExpression(Expression):
         return "(" + self.operator + self.right.string + ")"
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class InfixExpression(Expression):
     tok: token.Token = None
     left: Expression = None
@@ -226,7 +246,7 @@ class InfixExpression(Expression):
         return "(" + self.left.string + " " + self.operator + " " + self.right.string + ")"
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class BlockStatement(Statement):
     tok: token.Token = None
     statements: List[Statement] = None
@@ -242,7 +262,7 @@ class BlockStatement(Statement):
         return "".join([s.string for s in self.statements])
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class IfExpression(Expression):
     tok: token.Token = None
     condition: Expression = None
@@ -264,7 +284,7 @@ class IfExpression(Expression):
         return string
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class FunctionLiteral(Expression):
     tok: token.Token = None
     parameters: List[Identifier] = None
@@ -284,7 +304,7 @@ class FunctionLiteral(Expression):
         return string
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class CallExpression(Expression):
     tok: token.Token = None
     function: Expression = None
@@ -303,7 +323,7 @@ class CallExpression(Expression):
         return string
 
 
-@dataclass
+@dataclass(eq=True, frozen=True)
 class IndexExpression(Expression):
     tok: token.Token = None
     left: Expression = None

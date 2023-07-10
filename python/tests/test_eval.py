@@ -1,6 +1,5 @@
 from unittest import main, TestCase
 from src.monkey import lexer, parser, obj, eval, env
-from pprint import pprint
 
 
 class TestEval(TestCase):
