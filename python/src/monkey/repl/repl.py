@@ -22,25 +22,39 @@ def log_error(msg: str, details: str, f):
 def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
     e = env.Environment()
 
-    print(PROMPT, end="", flush=True, file=rout)
-    user_input = rin.readline()
-
-    while True:
-        if user_input.strip() == "exit":
-            break
-        elif user_input.strip() == "clear":
-            os.system('cls' if os.name == 'nt' else 'clear')
-        else:
-            lex = lexer.Lexer(user_input)
-            par = parser.Parser(lex)
-            program = par.parse_program()
-
-            if len(par.errors):
-                log_error("Parsing Error!", par.error_str + "\n:(", rout)
-            else:
-                evaluated = eval.eval(program, e)
-                if evaluated is not None:
-                    print("[Output] " + evaluated.inspect + "\n", file=rout)
-
+    if rin == sys.stdin:
         print(PROMPT, end="", flush=True, file=rout)
         user_input = rin.readline()
+
+        while user_input:
+            if user_input.strip() == "exit":
+                break
+            elif user_input.strip() == "clear":
+                os.system('cls' if os.name == 'nt' else 'clear')
+            else:
+                lex = lexer.Lexer(user_input)
+                par = parser.Parser(lex)
+                program = par.parse_program()
+
+                if len(par.errors):
+                    log_error("Parsing Error!", par.error_str + "\n:(", rout)
+                else:
+                    evaluated = eval.eval(program, e)
+                    if evaluated is not None:
+                        print("[Output] " + evaluated.inspect + "\n", file=rout)
+
+            print(PROMPT, end="", flush=True, file=rout)
+            user_input = rin.readline()
+    else:
+        code = "".join(rin.readlines())
+        print(code)
+        lex = lexer.Lexer(code)
+        par = parser.Parser(lex)
+        program = par.parse_program()
+
+        if len(par.errors):
+            log_error("Parsing Error!", par.error_str + "\n:(", rout)
+        else:
+            evaluated = eval.eval(program, e)
+            if evaluated is not None:
+                print(evaluated.inspect, file=rout)

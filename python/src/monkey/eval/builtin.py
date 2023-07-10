@@ -44,7 +44,7 @@ def _monkey_builtin_rest(*args: Tuple[obj.Object]) -> obj.Object:
     if len(args) != 1:
         return new_error(f"wrong number of arguements. got={len(args)}, want=1")
     if type(args[0]) == obj.Array:
-        if len(args[0].elements) > 1:
+        if len(args[0].elements) > 0:
             array = args[0].elements[1:]
             return obj.Array(array.copy())
         else:
