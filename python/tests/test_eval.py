@@ -254,7 +254,7 @@ class TestEval(TestCase):
             else:
                 self.verify_null_obj(o)
 
-    def test_array_litearls(self):
+    def test_eval_array_litearls(self):
         code = "[1, 2 * 2, 3 + 3]"
         o = self.verify_eval(code)
         self.assertIsInstance(o, obj.Array)
@@ -263,7 +263,7 @@ class TestEval(TestCase):
         self.verify_integer_obj(o.elements[1], 4)
         self.verify_integer_obj(o.elements[2], 6)
 
-    def test_index_expressions(self):
+    def test_eval_index_expressions(self):
         cases = (
             ("[1, 2, 3][0]", 1),
             ("[1, 2, 3][1]", 2),
@@ -276,6 +276,50 @@ class TestEval(TestCase):
             ("[1, 2, 3][3]", None),
             ("[1, 2, 3][-1]", 3),
             ("[1, 2, 3][-4]", None),
+        )
+        for code, expect in cases:
+            o = self.verify_eval(code)
+            if type(expect) == int:
+                self.verify_integer_obj(o, expect)
+            else:
+                self.verify_null_obj(o)
+
+    def test_eval_hash_literals(self):
+        code = r'''
+        let two = "two";
+        {
+            "one": 10 - 9,
+            two: 1 + 1,
+            "thr" + "ee": 6 / 2,
+            4: 4,
+            true: 5,
+            false: 6
+        }
+        '''
+        o = self.verify_eval(code)
+        self.assertIsInstance(o, obj.Hash)
+        expected = {
+            obj.String("one"): 1,
+            obj.String("two"): 2,
+            obj.String("three"): 3,
+            obj.Integer(4): 4,
+            obj.TRUE: 5,
+            obj.FALSE: 6
+        }
+        self.assertEqual(len(o.pairs), len(expected))
+        for expected_key, expected_value in expected.items():
+            pair = o.pairs[expected_key]
+            self.assertEqual(pair.value, expected_value)
+
+    def test_eval_hash_index_expressions(self):
+        cases = (
+            ('{"foo": 5}["foo"]', 5),
+            ('{"foo": 5}["bar"]', None),
+            ('let key = "foo"; {"foo": 5}[key]', 5),
+            ('{}["foo"]', None),
+            ('{5: 5}[5]', 5),
+            ('{true: 5}[true]', 5),
+            ('{false: 5}[false]', 5),
         )
         for code, expect in cases:
             o = self.verify_eval(code)

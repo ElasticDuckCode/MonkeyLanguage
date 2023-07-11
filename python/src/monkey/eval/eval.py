@@ -57,6 +57,8 @@ def eval(node: ast.Node, e: env.Environment) -> obj.Object:
             if is_error(index):
                 return index
             return eval_index_expression(left, index)
+        case ast.HashLiteral:
+            return eval_hash_literal(node, e)
         case ast.ExpressionStatement:
             return eval(node.expression, e)
         case ast.PrefixExpression:
@@ -223,6 +225,10 @@ def eval_string_infix_expression(op: str, left: obj.String, right: obj.String, e
 def eval_index_expression(left: obj.Object, index: obj.Object):
     if (type(left) == obj.Array) and (type(index) == obj.Integer):
         return eval_array_integer_index_expression(left, index)
+    if (type(left) == obj.Hash):
+        if not is_hashable(index):
+            return new_error(f"unusable as hash key: {index.otype}")
+        return eval_hash_index_expression(left, index)
     return new_error(f"index operator not supported: {left.otype}")
 
 
@@ -232,6 +238,12 @@ def eval_array_integer_index_expression(left: obj.Array, index: obj.Integer):
     if (idx < -len(array)) or (idx >= len(array)):
         return obj.NULL
     return array[idx % len(array)]
+
+
+def eval_hash_index_expression(left: obj.Hash, key: obj.Object):
+    if key not in left.pairs.keys():
+        return obj.NULL
+    return left.pairs[key]
 
 
 def eval_bang_operator(right: obj.Object, e: env.Environment) -> obj.Object:
@@ -257,6 +269,27 @@ def eval_minus_operator(right: obj.Object, e: env.Environment) -> obj.Object:
     if type(right) != obj.Integer:
         return new_error(f"unknown operator: -{right.otype}")
     return obj.Integer(-right.value)
+
+
+def eval_hash_literal(node: ast.HashLiteral, e: env.Environment) -> obj.Object:
+    pairs = {}
+    for key_node, val_node in node.pairs.items():
+        key = eval(key_node, e)
+        if is_error(key):
+            return key
+        if not is_hashable(key):
+            return new_error(f"unusable as hash key: {key.otype}")
+        value = eval(val_node, e)
+        if is_error(value):
+            return value
+        pairs[key] = value
+    return obj.Hash(pairs)
+
+
+def is_hashable(key):
+    if type(key) not in [obj.Integer, obj.String, obj.Boolean]:
+        return False
+    return True
 
 
 def is_truthy(o: obj.Object):
