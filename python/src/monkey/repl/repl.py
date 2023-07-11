@@ -50,10 +50,4 @@ def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
         lex = lexer.Lexer(code)
         par = parser.Parser(lex)
         program = par.parse_program()
-
-        if len(par.errors):
-            log_error("Parsing Error!", par.error_str + "\n:(", rout)
-        else:
-            evaluated = eval.eval(program, e)
-            if evaluated is not None:
-                print(evaluated.inspect, file=rout)
+        evaluated = eval.eval(program, e)

@@ -63,9 +63,15 @@ def _monkey_builtin_push(*args: Tuple[obj.Object]) -> obj.Object:
     return obj.Array(array)
 
 
+def _monkey_builtin_puts(*args: Tuple[obj.Object]) -> obj.Object:
+    print(*[a.inspect for a in args])
+    return obj.NULL
+
+
 BuiltIn: Dict[str, obj.BuiltIn] = defaultdict(lambda: None)
 BuiltIn["len"] = obj.BuiltIn(fn=_monkey_builtin_len)
 BuiltIn["first"] = obj.BuiltIn(fn=_monkey_builtin_first)
 BuiltIn["last"] = obj.BuiltIn(fn=_monkey_builtin_last)
 BuiltIn["rest"] = obj.BuiltIn(fn=_monkey_builtin_rest)
 BuiltIn["push"] = obj.BuiltIn(fn=_monkey_builtin_push)
+BuiltIn["puts"] = obj.BuiltIn(fn=_monkey_builtin_puts)
