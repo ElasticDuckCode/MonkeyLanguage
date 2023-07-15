@@ -163,7 +163,7 @@ class StringLiteral(Expression):
 @dataclass(eq=True, frozen=True)
 class ArrayLiteral(Expression):
     tok: token.Token
-    elements: List[Expression]
+    elements: List[Expression] | None
 
     def expression_node(self) -> None: return
 
@@ -173,13 +173,17 @@ class ArrayLiteral(Expression):
 
     @property
     def string(self) -> str:
-        return "[" + ", ".join([s.string for s in self.elements]) + "]"
+        string = "["
+        if self.elements:
+            string += ", ".join([s.string for s in self.elements])
+        string += "]"
+        return string
 
 
 @dataclass(eq=True, frozen=True)
 class HashLiteral(Expression):
     tok: token.Token
-    pairs: Dict[Expression, Expression]
+    pairs: Dict[Expression | None, Expression | None]
 
     def expression_node(self) -> None: return
 
@@ -191,7 +195,8 @@ class HashLiteral(Expression):
     def string(self) -> str:
         pair_strs = []
         for pair in self.pairs.items():
-            pair_strs.append(pair[0].string + ": " + pair[1].string)
+            if pair[0] and pair[1]:
+                pair_strs.append(pair[0].string + ": " + pair[1].string)
         return "{" + ", ".join(pair_strs) + "}"
 
 
@@ -265,9 +270,9 @@ class BlockStatement(Statement):
 @dataclass(eq=True, frozen=True)
 class IfExpression(Expression):
     tok: token.Token
-    condition: Expression
-    consequence: BlockStatement
-    alternative: BlockStatement
+    condition: Expression | None
+    consequence: BlockStatement | None
+    alternative: BlockStatement | None
 
     def expression_node(self) -> None: return
 
@@ -278,7 +283,10 @@ class IfExpression(Expression):
     @property
     def string(self) -> str:
         string = "if"
-        string += self.condition.string + " " + self.consequence.string
+        if self.condition:
+            string += self.condition.string + " "
+        if self.consequence:
+            string += self.consequence.string
         if self.alternative is not None:
             string += "else " + self.alternative.string
         return string
@@ -287,8 +295,8 @@ class IfExpression(Expression):
 @dataclass(eq=True, frozen=True)
 class FunctionLiteral(Expression):
     tok: token.Token
-    parameters: List[Identifier]
-    body: BlockStatement
+    parameters: List[Identifier] | None
+    body: BlockStatement | None
 
     def expression_node(self) -> None: return
 
@@ -299,16 +307,20 @@ class FunctionLiteral(Expression):
     @property
     def string(self) -> str:
         string = self.tok.literal
-        string += "(" + ", ".join([p.string for p in self.parameters]) + ")"
-        string += self.body.string
+        string += "("
+        if self.parameters:
+            string += ", ".join([p.string for p in self.parameters])
+        string += ")"
+        if self.body:
+            string += self.body.string
         return string
 
 
 @dataclass(eq=True, frozen=True)
 class CallExpression(Expression):
     tok: token.Token
-    function: Expression
-    arguements: List[Expression]
+    function: Expression | None
+    arguements: List[Expression] | None
 
     def expression_node(self) -> None: return
 
@@ -318,16 +330,21 @@ class CallExpression(Expression):
 
     @property
     def string(self) -> str:
-        string = self.function.string
-        string += "(" + ", ".join([a.string for a in self.arguements]) + ")"
+        string = ""
+        if self.function:
+            string += self.function.string
+        string += "("
+        if self.arguements:
+            string += ", ".join([a.string for a in self.arguements])
+        string += ")"
         return string
 
 
 @dataclass(eq=True, frozen=True)
 class IndexExpression(Expression):
     tok: token.Token
-    left: Expression
-    index: Expression
+    left: Expression | None
+    index: Expression | None
 
     def expression_node(self) -> None: return
 
@@ -337,5 +354,11 @@ class IndexExpression(Expression):
 
     @property
     def string(self) -> str:
-        s = "(" + self.left.string + "[" + self.index.string + "]" + ")"
+        s = "("
+        if self.left:
+            s += self.left.string
+        s += "["
+        if self.index:
+            s += self.index.string
+        s += "]" + ")"
         return s
