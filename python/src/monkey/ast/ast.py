@@ -50,8 +50,8 @@ class Program(Node):
 
 @dataclass(eq=True, frozen=True)
 class Identifier(Expression):
-    tok: token.Token = None
-    value: str = None
+    tok: token.Token
+    value: str
 
     def expression_node(self) -> None: return
 
@@ -66,9 +66,9 @@ class Identifier(Expression):
 
 @dataclass(eq=True, frozen=True)
 class LetStatement(Statement):
-    tok: token.Token = None
-    name: Identifier = None
-    value: Expression = None
+    tok: token.Token
+    name: Identifier
+    value: Expression
 
     def statement_node(self) -> None: return
 
@@ -90,8 +90,8 @@ class LetStatement(Statement):
 
 @dataclass(eq=True, frozen=True)
 class ReturnStatement(Statement):
-    tok: token.Token = None
-    value: Expression = None
+    tok: token.Token
+    value: Expression
 
     def statement_node(self) -> None: return
 
@@ -111,8 +111,8 @@ class ReturnStatement(Statement):
 
 @dataclass(eq=True, frozen=True)
 class ExpressionStatement(Statement):
-    tok: token.Token = None
-    expression: Expression = None
+    tok: token.Token
+    expression: Expression
 
     def statement_node(self) -> None: return
 
@@ -130,8 +130,8 @@ class ExpressionStatement(Statement):
 
 @dataclass(eq=True, frozen=True)
 class IntegerLiteral(Expression):
-    tok: token.Token = None
-    value: int = None
+    tok: token.Token
+    value: int
 
     def expression_node(self) -> None: return
 
@@ -146,8 +146,8 @@ class IntegerLiteral(Expression):
 
 @dataclass(eq=True, frozen=True)
 class StringLiteral(Expression):
-    tok: token.Token = None
-    value: str = None
+    tok: token.Token
+    value: str
 
     def expression_node(self) -> None: return
 
@@ -162,8 +162,8 @@ class StringLiteral(Expression):
 
 @dataclass(eq=True, frozen=True)
 class ArrayLiteral(Expression):
-    tok: token.Token = None
-    elements: List[Expression] = None
+    tok: token.Token
+    elements: List[Expression]
 
     def expression_node(self) -> None: return
 
@@ -178,8 +178,8 @@ class ArrayLiteral(Expression):
 
 @dataclass(eq=True, frozen=True)
 class HashLiteral(Expression):
-    tok: token.Token = None
-    pairs: Dict[Expression, Expression] = None
+    tok: token.Token
+    pairs: Dict[Expression, Expression]
 
     def expression_node(self) -> None: return
 
@@ -197,8 +197,8 @@ class HashLiteral(Expression):
 
 @dataclass(eq=True, frozen=True)
 class Boolean(Expression):
-    tok: token.Token = None
-    value: bool = None
+    tok: token.Token
+    value: bool
 
     def expression_node(self) -> None: return
 
@@ -213,9 +213,9 @@ class Boolean(Expression):
 
 @dataclass(eq=True, frozen=True)
 class PrefixExpression(Expression):
-    tok: token.Token = None
-    operator: str = None
-    right: Expression = None
+    tok: token.Token
+    operator: str
+    right: Expression
 
     def expression_node(self) -> None: return
 
@@ -230,10 +230,10 @@ class PrefixExpression(Expression):
 
 @dataclass(eq=True, frozen=True)
 class InfixExpression(Expression):
-    tok: token.Token = None
-    left: Expression = None
-    operator: str = None
-    right: Expression = None
+    tok: token.Token
+    left: Expression
+    operator: str
+    right: Expression
 
     def expression_node(self) -> None: return
 
@@ -248,8 +248,8 @@ class InfixExpression(Expression):
 
 @dataclass(eq=True, frozen=True)
 class BlockStatement(Statement):
-    tok: token.Token = None
-    statements: List[Statement] = None
+    tok: token.Token
+    statements: List[Statement]
 
     def statement_node(self) -> None: return
 
@@ -264,10 +264,10 @@ class BlockStatement(Statement):
 
 @dataclass(eq=True, frozen=True)
 class IfExpression(Expression):
-    tok: token.Token = None
-    condition: Expression = None
-    consequence: BlockStatement = None
-    alternative: BlockStatement = None
+    tok: token.Token
+    condition: Expression
+    consequence: BlockStatement
+    alternative: BlockStatement
 
     def expression_node(self) -> None: return
 
@@ -278,17 +278,17 @@ class IfExpression(Expression):
     @property
     def string(self) -> str:
         string = "if"
-        string += self.condition.string + " " + self.Consequence.string
-        if self.Alternative is not None:
-            string += "else " + self.Alternative.string
+        string += self.condition.string + " " + self.consequence.string
+        if self.alternative is not None:
+            string += "else " + self.alternative.string
         return string
 
 
 @dataclass(eq=True, frozen=True)
 class FunctionLiteral(Expression):
-    tok: token.Token = None
-    parameters: List[Identifier] = None
-    body: BlockStatement = None
+    tok: token.Token
+    parameters: List[Identifier]
+    body: BlockStatement
 
     def expression_node(self) -> None: return
 
@@ -298,7 +298,7 @@ class FunctionLiteral(Expression):
 
     @property
     def string(self) -> str:
-        string = self.tok.token_literal
+        string = self.tok.literal
         string += "(" + ", ".join([p.string for p in self.parameters]) + ")"
         string += self.body.string
         return string
@@ -306,9 +306,9 @@ class FunctionLiteral(Expression):
 
 @dataclass(eq=True, frozen=True)
 class CallExpression(Expression):
-    tok: token.Token = None
-    function: Expression = None
-    arguements: List[Expression] = None
+    tok: token.Token
+    function: Expression
+    arguements: List[Expression]
 
     def expression_node(self) -> None: return
 
@@ -325,9 +325,9 @@ class CallExpression(Expression):
 
 @dataclass(eq=True, frozen=True)
 class IndexExpression(Expression):
-    tok: token.Token = None
-    left: Expression = None
-    index: Expression = None
+    tok: token.Token
+    left: Expression
+    index: Expression
 
     def expression_node(self) -> None: return
 
