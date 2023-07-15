@@ -34,7 +34,7 @@ class Object(ABC):
 
 @dataclass(eq=True, frozen=True)
 class Integer(Object):
-    value: int = None
+    value: int
 
     @property
     def otype(self) -> ObjectType: return INTEGER_OBJ
@@ -46,7 +46,7 @@ class Integer(Object):
 
 @dataclass(eq=True, frozen=True)
 class String(Object):
-    value: str = None
+    value: str
 
     @property
     def otype(self) -> ObjectType: return STRING_OBJ
@@ -58,7 +58,7 @@ class String(Object):
 
 @dataclass(eq=True, frozen=True)
 class Boolean(Object):
-    value: bool = None
+    value: bool
 
     @property
     def otype(self) -> ObjectType: return BOOLEAN_OBJ
@@ -88,7 +88,7 @@ NULL: Final[Null] = Null()
 
 @dataclass(eq=True, frozen=True)
 class ReturnValue(Object):
-    value: Object = None
+    value: Object
 
     @property
     def otype(self) -> ObjectType: return RETURN_VALUE_OBJ
@@ -100,7 +100,7 @@ class ReturnValue(Object):
 
 @dataclass(eq=True, frozen=True)
 class Error(Object):
-    message: str = None
+    message: str
 
     @property
     def otype(self) -> ObjectType: return ERROR_OBJ
@@ -113,9 +113,9 @@ class Error(Object):
 @dataclass(eq=True, frozen=True)
 class Function(Object):
     from . import env
-    parameters: List[ast.Identifier] = None
-    body: ast.BlockStatement = None
-    environment: env.Environment = None
+    parameters: List[ast.Identifier]
+    body: ast.BlockStatement
+    environment: env.Environment
 
     @property
     def otype(self) -> ObjectType: return FUNCTION_OBJ
@@ -125,13 +125,12 @@ class Function(Object):
         string = "fn("
         string += ",".join([p.string for p in self.parameters]) + "\n"
         string += self.body.string + "\n"
-        return self.string
+        return string
 
 
 @dataclass(eq=True, frozen=True)
 class BuiltIn(Object):
-
-    fn: Callable[[Tuple[Object, ...]], Object] = None
+    fn: Callable[[Tuple[Object, ...]], Object]
 
     @property
     def otype(self) -> ObjectType: return BUILTIN_OBJ
@@ -143,7 +142,7 @@ class BuiltIn(Object):
 
 @dataclass(eq=True, frozen=True)
 class Array(Object):
-    elements: List[Object] = None
+    elements: List[Object]
 
     @property
     def otype(self) -> ObjectType: return ARRAY_OBJ
@@ -155,7 +154,7 @@ class Array(Object):
 
 @dataclass(eq=True, frozen=True)
 class Hash(Object):
-    pairs: Dict[Object, Object] = None
+    pairs: Dict[Object, Object]
 
     @property
     def otype(self) -> ObjectType: return HASH_OBJ

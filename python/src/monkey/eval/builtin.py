@@ -12,6 +12,8 @@ def _monkey_builtin_len(*args: Tuple[obj.Object]) -> obj.Object:
         return obj.Integer(len(args[0].value))
     if type(args[0]) == obj.Array:
         return obj.Integer(len(args[0].elements))
+    if not isinstance(args[0], obj.Object):
+        return new_error(f"arguement to `len` not an obj.Object. got {args[0]}")
     return new_error(f"arguement to `len` not supported. got {args[0].otype}")
 
 
@@ -24,6 +26,8 @@ def _monkey_builtin_first(*args: Tuple[obj.Object]) -> obj.Object:
             return args[0].elements[0]
         else:
             return obj.NULL
+    if not isinstance(args[0], obj.Object):
+        return new_error(f"arguement to `len` not an obj.Object. got {args[0]}")
     return new_error(f"arguement to `first` not supported. got {args[0].otype}")
 
 
@@ -36,6 +40,8 @@ def _monkey_builtin_last(*args: Tuple[obj.Object]) -> obj.Object:
             return args[0].elements[-1]
         else:
             return obj.NULL
+    if not isinstance(args[0], obj.Object):
+        return new_error(f"arguement to `len` not an obj.Object. got {args[0]}")
     return new_error(f"arguement to `last` not supported. got {args[0].otype}")
 
 
@@ -49,6 +55,8 @@ def _monkey_builtin_rest(*args: Tuple[obj.Object]) -> obj.Object:
             return obj.Array(array.copy())
         else:
             return obj.NULL
+    if not isinstance(args[0], obj.Object):
+        return new_error(f"arguement to `len` not an obj.Object. got {args[0]}")
     return new_error(f"arguement to `rest` not supported. got {args[0].otype}")
 
 
@@ -57,6 +65,8 @@ def _monkey_builtin_push(*args: Tuple[obj.Object]) -> obj.Object:
     if len(args) != 2:
         return new_error(f"wrong number of arguements. got={len(args)}, want=2")
     if type(args[0]) != obj.Array:
+        if not isinstance(args[0], obj.Object):
+            return new_error(f"arguement to `len` not an obj.Object. got {args[0]}")
         return new_error(f"arguement to `push` not supported. got {args[0].otype}")
     array = args[0].elements.copy()
     array.append(args[1])
