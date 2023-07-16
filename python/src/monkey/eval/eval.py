@@ -6,15 +6,15 @@ from ..obj import env
 from .builtin import BuiltIn
 
 
-def eval(node: ast.Node, e: env.Environment) -> obj.Object:
-    match type(node):
-        case ast.Program:
+def eval(node: ast.Node | None, e: env.Environment) -> obj.Object | None:
+    match node:
+        case ast.Program():
             return eval_program(node.statements, e)
-        case ast.BlockStatement:
+        case ast.BlockStatement():
             return eval_block_statements(node.statements, e)
-        case ast.Identifier:
+        case ast.Identifier():
             return eval_identifier(node, e)
-        case ast.IfExpression:
+        case ast.IfExpression():
             condition = eval(node.condition, e)
             if is_error(condition):
                 return condition
@@ -24,61 +24,81 @@ def eval(node: ast.Node, e: env.Environment) -> obj.Object:
                 return eval(node.alternative, e)
             else:
                 return obj.NULL
-        case ast.LetStatement:
+        case ast.LetStatement():
             val = eval(node.value, e)
             if is_error(val):
                 return val
-            e.set(node.name.value, val)
-        case ast.ReturnStatement:
+            if val:
+                e.set(node.name.value, val)
+            return None
+        case ast.ReturnStatement():
             val = eval(node.value, e)
             if is_error(val):
                 return val
-            return obj.ReturnValue(val)
-        case ast.FunctionLiteral:
-            return obj.Function(node.parameters, node.body, e)
-        case ast.CallExpression:
+            if val:
+                return obj.ReturnValue(val)
+            return None
+        case ast.FunctionLiteral():
+            if node.parameters and node.body:
+                return obj.Function(node.parameters, node.body, e)
+            return None
+        case ast.CallExpression():
             function = eval(node.function, e)
             if is_error(function):
                 return function
-            args = eval_expressions(node.arguements, e)
+            if node.arguements is None:
+                args = eval_expressions([], e)
+            else:
+                args = eval_expressions(node.arguements, e)
             if len(args) == 1 and is_error(args[0]):
                 return args[0]
-            return apply_function(function, args)
-        case ast.ArrayLiteral:
-            elements = eval_expressions(node.elements, e)
+            if function and args:
+                return apply_function(function, args)
+            return None
+        case ast.ArrayLiteral():
+            if node.elements is None:
+                elements = eval_expressions([], e)
+            else:
+                elements = eval_expressions(node.elements, e)
             if len(elements) == 1 and is_error(elements[0]):
                 return elements[0]
             return obj.Array(elements)
-        case ast.IndexExpression:
+        case ast.IndexExpression():
             left = eval(node.left, e)
             if is_error(left):
                 return left
             index = eval(node.index, e)
             if is_error(index):
                 return index
-            return eval_index_expression(left, index)
-        case ast.HashLiteral:
+            if left and index:
+                return eval_index_expression(left, index)
+            return None
+        case ast.HashLiteral():
             return eval_hash_literal(node, e)
-        case ast.ExpressionStatement:
+        case ast.ExpressionStatement():
             return eval(node.expression, e)
-        case ast.PrefixExpression:
+        case ast.PrefixExpression():
             right = eval(node.right, e)
             if is_error(right):
                 return right
-            return eval_prefix_expression(node.operator, right, e)
-        case ast.InfixExpression:
+            if right:
+                return eval_prefix_expression(node.operator, right, e)
+            return None
+        case ast.InfixExpression():
             left = eval(node.left, e)
             if is_error(left):
                 return left
             right = eval(node.right, e)
             if is_error(right):
                 return right
-            return eval_infix_expression(node.operator, left, right, e)
-        case ast.IntegerLiteral:
+            if left and right:
+                return eval_infix_expression(node.operator, left, right, e)
+            return None
+        case ast.IntegerLiteral():
             return obj.Integer(node.value)
-        case ast.StringLiteral:
+        case ast.StringLiteral():
             return obj.String(node.value)
-        case ast.Boolean:
+        case ast.Boolean():
             if node.value:
                 return obj.TRUE
             else:
@@ -87,7 +107,7 @@ def eval(node: ast.Node, e: env.Environment) -> obj.Object:
             return None
 
 
-def eval_program(stmts: List[ast.Statement], e: env.Environment) -> obj.Object:
+def eval_program(stmts: List[ast.Statement], e: env.Environment) -> obj.Object | None:
     result = None
     for stmt in stmts:
         result = eval(stmt, e)
@@ -98,27 +118,32 @@ def eval_program(stmts: List[ast.Statement], e: env.Environment) -> obj.Object:
     return result
 
 
-def eval_expressions(exps: List[ast.Expression], e: env.Environment) -> List[obj.Object]:
+def eval_expressions(
+    exps: List[ast.Expression], e: env.Environment
+) -> List[obj.Object]:
     result = []
     for exp in exps:
         evaluated = eval(exp, e)
-        if is_error(evaluated):
-            return [evaluated]
-        result.append(evaluated)
+        if evaluated:
+            if is_error(evaluated):
+                return [evaluated]
+            result.append(evaluated)
     return result
 
 
-def apply_function(fn: obj.Object, args: List[ast.Expression]):
+def apply_function(fn: obj.Object, args: List[obj.Object]):
     if type(fn) == obj.Function:
         extended_e = extend_function_environment(fn, args)
         evaluated = eval(fn.body, extended_e)
-        return unwrap_return_value(evaluated)
+        if evaluated:
+            return unwrap_return_value(evaluated)
+        return None
     elif type(fn) == obj.BuiltIn:
         return fn.fn(*args)
     return new_error(f"not a function: {fn.otype}")
 
 
-def extend_function_environment(fn: obj.Function, args: List[ast.Expression]):
+def extend_function_environment(fn: obj.Function, args: List[obj.Object]):
     e = env.Environment(fn.environment)
     for i, param in enumerate(fn.parameters):
         e.set(param.value, args[i])
@@ -132,7 +157,9 @@ def unwrap_return_value(o: obj.Object):
         return o
 
 
-def eval_block_statements(stmts: List[ast.Statement], e: env.Environment) -> obj.Object:
+def eval_block_statements(
+    stmts: List[ast.Statement], e: env.Environment
+) -> obj.Object | None:
     result = None
     for stmt in stmts:
         result = eval(stmt, e)
@@ -144,7 +171,7 @@ def eval_block_statements(stmts: List[ast.Statement], e: env.Environment) -> obj
     return result
 
 
-def eval_identifier(node: ast.Node, e: env.Environment) -> obj.Object:
+def eval_identifier(node: ast.Identifier, e: env.Environment) -> obj.Object:
     if node is not None and node.value == "null":
         return obj.NULL
     val = e.get(node.value)
@@ -156,7 +183,9 @@ def eval_identifier(node: ast.Node, e: env.Environment) -> obj.Object:
     return new_error(f"identifier not found: {node.value}")
 
 
-def eval_prefix_expression(op: str, right: obj.Object, e: env.Environment) -> obj.Object:
+def eval_prefix_expression(
+    op: str, right: obj.Object, e: env.Environment
+) -> obj.Object:
     match op:
         case "!":
             return eval_bang_operator(right, e)
@@ -166,7 +195,9 @@ def eval_prefix_expression(op: str, right: obj.Object, e: env.Environment) -> ob
             return new_error(f"unknown operator: {op}{right.otype}")
 
 
-def eval_infix_expression(op: str, left: obj.Object, right: obj.Object, e: env.Environment):
+def eval_infix_expression(
+    op: str, left: obj.Object, right: obj.Object, e: env.Environment
+):
     if (type(left) == obj.Integer) and (type(right) == obj.Integer):
         return eval_integer_infix_expression(op, left, right, e)
     elif (type(left) == obj.Boolean) and (type(right) == obj.Boolean):
@@ -179,7 +210,9 @@ def eval_infix_expression(op: str, left: obj.Object, right: obj.Object, e: env.E
         return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
-def eval_integer_infix_expression(op: str, left: obj.Integer, right: obj.Integer, e: env.Environment) -> obj.Object:
+def eval_integer_infix_expression(
+    op: str, left: obj.Integer, right: obj.Integer, e: env.Environment
+) -> obj.Object:
     match op:
         case "+":
             return obj.Integer(left.value + right.value)
@@ -204,7 +237,9 @@ def eval_integer_infix_expression(op: str, left: obj.Integer, right: obj.Integer
             return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
-def eval_boolean_infix_expression(op: str, left: obj.Boolean, right: obj.Boolean, e: env.Environment) -> obj.Object:
+def eval_boolean_infix_expression(
+    op: str, left: obj.Boolean, right: obj.Boolean, e: env.Environment
+) -> obj.Object:
     match op:
         case "==":
             return native_bool_to_obj_bool(left == right)  # directly compare
@@ -214,7 +249,9 @@ def eval_boolean_infix_expression(op: str, left: obj.Boolean, right: obj.Boolean
             return new_error(f"unknown operator: {left.otype} {op} {right.otype}")
 
 
-def eval_string_infix_expression(op: str, left: obj.String, right: obj.String, e: env.Environment) -> obj.Object:
+def eval_string_infix_expression(
+    op: str, left: obj.String, right: obj.String, e: env.Environment
+) -> obj.Object:
     match op:
         case "+":
             return obj.String(left.value + right.value)
@@ -225,7 +262,7 @@ def eval_string_infix_expression(op: str, left: obj.String, right: obj.String, e
 def eval_index_expression(left: obj.Object, index: obj.Object):
     if (type(left) == obj.Array) and (type(index) == obj.Integer):
         return eval_array_integer_index_expression(left, index)
-    if (type(left) == obj.Hash):
+    if type(left) == obj.Hash:
         if not is_hashable(index):
             return new_error(f"unusable as hash key: {index.otype}")
         return eval_hash_index_expression(left, index)
@@ -275,11 +312,15 @@ def eval_hash_literal(node: ast.HashLiteral, e: env.Environment) -> obj.Object:
     pairs = {}
     for key_node, val_node in node.pairs.items():
         key = eval(key_node, e)
+        if key is None:
+            return new_error(f"missing hash key.")
         if is_error(key):
             return key
         if not is_hashable(key):
             return new_error(f"unusable as hash key: {key.otype}")
         value = eval(val_node, e)
+        if value is None:
+            return new_error(f"missing hash value.")
         if is_error(value):
             return value
         pairs[key] = value
@@ -292,7 +333,7 @@ def is_hashable(key):
     return True
 
 
-def is_truthy(o: obj.Object):
+def is_truthy(o: obj.Object | None):
     match o:
         case obj.NULL:
             return False
@@ -308,7 +349,7 @@ def new_error(msg: str) -> obj.Error:
     return obj.Error(msg)
 
 
-def is_error(o: obj.Object):
+def is_error(o: obj.Object | None):
     if o is not None:
         return o.otype == obj.ERROR_OBJ
     else:

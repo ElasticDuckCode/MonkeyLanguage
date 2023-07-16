@@ -5,31 +5,32 @@ from typing import Final, NewType, List, Callable, Tuple, Dict
 from ..ast import ast
 
 
-ObjectType = NewType('ObjectType', str)
+ObjectType = NewType("ObjectType", str)
 
 
-INTEGER_OBJ:      Final[ObjectType] = ObjectType("INTEGER")
-BOOLEAN_OBJ:      Final[ObjectType] = ObjectType("BOOLEAN")
-STRING_OBJ:       Final[ObjectType] = ObjectType("STRING")
-NULL_OBJ:         Final[ObjectType] = ObjectType("NULL")
+INTEGER_OBJ: Final[ObjectType] = ObjectType("INTEGER")
+BOOLEAN_OBJ: Final[ObjectType] = ObjectType("BOOLEAN")
+STRING_OBJ: Final[ObjectType] = ObjectType("STRING")
+NULL_OBJ: Final[ObjectType] = ObjectType("NULL")
 RETURN_VALUE_OBJ: Final[ObjectType] = ObjectType("RETURN_VALUE")
-ERROR_OBJ:        Final[ObjectType] = ObjectType("ERROR")
-FUNCTION_OBJ:     Final[ObjectType] = ObjectType("FUNCTION")
-BUILTIN_OBJ:      Final[ObjectType] = ObjectType("BUILTIN")
-ARRAY_OBJ:        Final[ObjectType] = ObjectType("ARRAY")
-HASH_OBJ:         Final[ObjectType] = ObjectType("HASH")
+ERROR_OBJ: Final[ObjectType] = ObjectType("ERROR")
+FUNCTION_OBJ: Final[ObjectType] = ObjectType("FUNCTION")
+BUILTIN_OBJ: Final[ObjectType] = ObjectType("BUILTIN")
+ARRAY_OBJ: Final[ObjectType] = ObjectType("ARRAY")
+HASH_OBJ: Final[ObjectType] = ObjectType("HASH")
 
 
 @dataclass(eq=True, frozen=True)
 class Object(ABC):
+    @property
+    @abstractmethod
+    def otype(self) -> ObjectType:
+        pass
 
     @property
     @abstractmethod
-    def otype(self) -> ObjectType: pass
-
-    @property
-    @abstractmethod
-    def inspect(self) -> str: pass
+    def inspect(self) -> str:
+        pass
 
 
 @dataclass(eq=True, frozen=True)
@@ -37,7 +38,8 @@ class Integer(Object):
     value: int
 
     @property
-    def otype(self) -> ObjectType: return INTEGER_OBJ
+    def otype(self) -> ObjectType:
+        return INTEGER_OBJ
 
     @property
     def inspect(self) -> str:
@@ -49,7 +51,8 @@ class String(Object):
     value: str
 
     @property
-    def otype(self) -> ObjectType: return STRING_OBJ
+    def otype(self) -> ObjectType:
+        return STRING_OBJ
 
     @property
     def inspect(self) -> str:
@@ -61,22 +64,23 @@ class Boolean(Object):
     value: bool
 
     @property
-    def otype(self) -> ObjectType: return BOOLEAN_OBJ
+    def otype(self) -> ObjectType:
+        return BOOLEAN_OBJ
 
     @property
     def inspect(self) -> str:
         return str(self.value).lower()  # True -> true
 
 
-TRUE:  Final[Boolean] = Boolean(True)
+TRUE: Final[Boolean] = Boolean(True)
 FALSE: Final[Boolean] = Boolean(False)
 
 
 @dataclass(eq=True, frozen=True)
 class Null(Object):
-
     @property
-    def otype(self) -> ObjectType: return NULL_OBJ
+    def otype(self) -> ObjectType:
+        return NULL_OBJ
 
     @property
     def inspect(self) -> str:
@@ -91,7 +95,8 @@ class ReturnValue(Object):
     value: Object
 
     @property
-    def otype(self) -> ObjectType: return RETURN_VALUE_OBJ
+    def otype(self) -> ObjectType:
+        return RETURN_VALUE_OBJ
 
     @property
     def inspect(self) -> str:
@@ -103,7 +108,8 @@ class Error(Object):
     message: str
 
     @property
-    def otype(self) -> ObjectType: return ERROR_OBJ
+    def otype(self) -> ObjectType:
+        return ERROR_OBJ
 
     @property
     def inspect(self) -> str:
@@ -113,12 +119,14 @@ class Error(Object):
 @dataclass(eq=True, frozen=True)
 class Function(Object):
     from . import env
+
     parameters: List[ast.Identifier]
     body: ast.BlockStatement
     environment: env.Environment
 
     @property
-    def otype(self) -> ObjectType: return FUNCTION_OBJ
+    def otype(self) -> ObjectType:
+        return FUNCTION_OBJ
 
     @property
     def inspect(self) -> str:
@@ -130,10 +138,11 @@ class Function(Object):
 
 @dataclass(eq=True, frozen=True)
 class BuiltIn(Object):
-    fn: Callable[[Tuple[Object, ...]], Object]
+    fn: Callable[..., Object]
 
     @property
-    def otype(self) -> ObjectType: return BUILTIN_OBJ
+    def otype(self) -> ObjectType:
+        return BUILTIN_OBJ
 
     @property
     def inspect(self) -> str:
@@ -145,7 +154,8 @@ class Array(Object):
     elements: List[Object]
 
     @property
-    def otype(self) -> ObjectType: return ARRAY_OBJ
+    def otype(self) -> ObjectType:
+        return ARRAY_OBJ
 
     @property
     def inspect(self) -> str:
@@ -157,7 +167,8 @@ class Hash(Object):
     pairs: Dict[Object, Object]
 
     @property
-    def otype(self) -> ObjectType: return HASH_OBJ
+    def otype(self) -> ObjectType:
+        return HASH_OBJ
 
     @property
     def inspect(self) -> str:
