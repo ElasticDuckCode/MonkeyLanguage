@@ -6,3 +6,4 @@ from .obj import obj, env
 from .eval import eval, builtin
 from .repl import repl
 from .code import code
+from .compiler import compiler
