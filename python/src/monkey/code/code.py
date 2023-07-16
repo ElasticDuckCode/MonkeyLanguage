@@ -37,7 +37,7 @@ def instructions_to_string(insts: list[bytes]) -> str:
     return string[:-1]
 
 
-def make(op: OpCode, operands: list[int]) -> bytes:
+def make(op: OpCode, *operands: int) -> bytes:
     instruction = bytearray(op.value)
     for operand, n_bytes in zip(operands, OpDefs[op].operand_widths):
         instruction += operand.to_bytes(n_bytes, "big")

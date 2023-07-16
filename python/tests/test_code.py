@@ -12,14 +12,14 @@ class TestOpCode(TestCase):
             ),
         )
         for opcode, operands, expected in cases:
-            instruction = code.make(opcode, operands)
+            instruction = code.make(opcode, *operands)
             self.assertEqual(instruction, expected)
 
     def test_code_repr(self):
         instructions = (
-            code.make(code.OpCode.Constant, [1]),
-            code.make(code.OpCode.Constant, [2]),
-            code.make(code.OpCode.Constant, [65535]),
+            code.make(code.OpCode.Constant, 1),
+            code.make(code.OpCode.Constant, 2),
+            code.make(code.OpCode.Constant, 65535),
         )
         expected = """0000 Constant 1
 0003 Constant 2

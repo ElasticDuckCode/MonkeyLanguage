@@ -107,7 +107,10 @@ def eval(node: ast.Node | None, e: env.Environment) -> obj.Object | None:
             return None
 
 
-def eval_program(stmts: List[ast.Statement], e: env.Environment) -> obj.Object | None:
+def eval_program(
+    stmts: List[ast.Statement],
+    e: env.Environment,
+) -> obj.Object | None:
     result = None
     for stmt in stmts:
         result = eval(stmt, e)
@@ -119,7 +122,8 @@ def eval_program(stmts: List[ast.Statement], e: env.Environment) -> obj.Object |
 
 
 def eval_expressions(
-    exps: List[ast.Expression], e: env.Environment
+    exps: List[ast.Expression],
+    e: env.Environment,
 ) -> List[obj.Object]:
     result = []
     for exp in exps:
@@ -131,7 +135,10 @@ def eval_expressions(
     return result
 
 
-def apply_function(fn: obj.Object, args: List[obj.Object]):
+def apply_function(
+    fn: obj.Object,
+    args: List[obj.Object],
+):
     if type(fn) == obj.Function:
         extended_e = extend_function_environment(fn, args)
         evaluated = eval(fn.body, extended_e)
@@ -158,7 +165,8 @@ def unwrap_return_value(o: obj.Object):
 
 
 def eval_block_statements(
-    stmts: List[ast.Statement], e: env.Environment
+    stmts: List[ast.Statement],
+    e: env.Environment,
 ) -> obj.Object | None:
     result = None
     for stmt in stmts:

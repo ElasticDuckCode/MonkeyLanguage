@@ -14,8 +14,8 @@ class TestCompiler(TestCase):
         test_code = "1 + 2"
         expected_const = (1, 2)
         expected_insts = (
-            code.make(code.OpCode.Constant, [1]),
-            code.make(code.OpCode.Constant, [2]),
+            code.make(code.OpCode.Constant, 0),
+            code.make(code.OpCode.Constant, 1),
         )
         program = parse(test_code)
 
@@ -26,5 +26,5 @@ class TestCompiler(TestCase):
         for i, expected in enumerate(expected_insts):
             self.assertEqual(bytecode.instructions[i], expected)
         self.assertEqual(len(bytecode.constants), len(expected_const))
-        for i, expected in range(expected_const):
-            self.assertEqual(bytecode.constants[i], expected)
+        for i, expected in enumerate(expected_const):
+            self.assertEqual(bytecode.constants[i].value, expected)

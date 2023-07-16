@@ -8,16 +8,16 @@ from ..token import token
 
 LOWEST, EQUALS, LESSGREATER, SUM, PRODUCT, PREFIX, CALL, INDEX = range(1, 9)
 precidences = {
-    token.EQ:       EQUALS,
-    token.NOT_EQ:   EQUALS,
-    token.LT:       LESSGREATER,
-    token.GT:       LESSGREATER,
-    token.PLUS:     SUM,
-    token.MINUS:    SUM,
-    token.SLASH:    PRODUCT,
+    token.EQ: EQUALS,
+    token.NOT_EQ: EQUALS,
+    token.LT: LESSGREATER,
+    token.GT: LESSGREATER,
+    token.PLUS: SUM,
+    token.MINUS: SUM,
+    token.SLASH: PRODUCT,
     token.ASTERISK: PRODUCT,
-    token.LPAREN:   CALL,
-    token.LBRACKET: INDEX
+    token.LPAREN: CALL,
+    token.LBRACKET: INDEX,
 }
 
 
@@ -28,10 +28,12 @@ class Parser:
     def __post_init__(self) -> None:
         self.next_token()
         self.next_token()
-        self.prefix_parse_fns: Dict[token.TokenType,
-                                    Callable[[], ast.Expression | None]] = {}
-        self.infix_parse_fns: Dict[token.TokenType, Callable[[
-            ast.Expression | None], ast.Expression | None]] = {}
+        self.prefix_parse_fns: Dict[
+            token.TokenType, Callable[[], ast.Expression | None]
+        ] = {}
+        self.infix_parse_fns: Dict[
+            token.TokenType, Callable[[ast.Expression | None], ast.Expression | None]
+        ] = {}
 
         self._errors: List[str] = []
 
@@ -59,30 +61,28 @@ class Parser:
         self.register_infix(token.LPAREN, self.parse_call_expression)
         self.register_infix(token.LBRACKET, self.parse_index_expression)
 
-    @ property
+    @property
     def errors(self):
         return self._errors
 
-    @ property
+    @property
     def error_str(self):
         return "\n".join(self._errors)
 
     def next_token(self) -> None:
-        if hasattr(self, 'peek_token'):
+        if hasattr(self, "peek_token"):
             self.curr_token: token.Token = self.peek_token
         self.peek_token: token.Token = self.lex.next_token()
 
     def register_prefix(
-        self,
-        tt: token.TokenType,
-        fn: Callable[[], ast.Expression | None]
+        self, tt: token.TokenType, fn: Callable[[], ast.Expression | None]
     ) -> None:
         self.prefix_parse_fns[tt] = fn
 
     def register_infix(
         self,
         tt: token.TokenType,
-        fn: Callable[[ast.Expression | None], ast.Expression | None]
+        fn: Callable[[ast.Expression | None], ast.Expression | None],
     ) -> None:
         self.infix_parse_fns[tt] = fn
 
@@ -194,7 +194,9 @@ class Parser:
             return None
         return ast.PrefixExpression(tok, operator, right)
 
-    def parse_infix_expression(self, left: ast.Expression | None) -> ast.Expression | None:
+    def parse_infix_expression(
+        self, left: ast.Expression | None
+    ) -> ast.Expression | None:
         tok = self.curr_token
         operator = self.curr_token.literal
         precidence = self.curr_precidence
@@ -280,7 +282,9 @@ class Parser:
 
         return idents
 
-    def parse_expression_list(self, end: token.TokenType) -> List[ast.Expression] | None:
+    def parse_expression_list(
+        self, end: token.TokenType
+    ) -> List[ast.Expression] | None:
         exps: List[ast.Expression] = []
         if self.is_peek_token(end):
             self.next_token()
@@ -303,7 +307,9 @@ class Parser:
         args = self.parse_expression_list(token.RPAREN)
         return ast.CallExpression(tok, f, args)
 
-    def parse_index_expression(self, left: ast.Expression | None) -> ast.Expression | None:
+    def parse_index_expression(
+        self, left: ast.Expression | None
+    ) -> ast.Expression | None:
         tok = self.curr_token
         self.next_token()
         index = self.parse_expression(LOWEST)
@@ -341,8 +347,7 @@ class Parser:
         return self.peek_token.token_type == t
 
     def expect_peek(self, t: token.TokenType) -> bool:
-        """Advance only if token type matches expected.
-        """
+        """Advance only if token type matches expected."""
         if self.is_peek_token(t):
             self.next_token()
             return True
@@ -350,7 +355,7 @@ class Parser:
             self.peek_error(t)
             return False
 
-    @ property
+    @property
     def peek_precidence(self) -> int:
         ttype = self.peek_token.token_type
         if ttype in precidences.keys():
@@ -358,7 +363,7 @@ class Parser:
         else:
             return LOWEST
 
-    @ property
+    @property
     def curr_precidence(self) -> int:
         ttype = self.curr_token.token_type
         if ttype in precidences.keys():
@@ -367,8 +372,7 @@ class Parser:
             return LOWEST
 
     def peek_error(self, t: token.TokenType):
-        msg = (f"Expected next token to be {t}, "
-               f"not {self.peek_token.token_type}.")
+        msg = f"Expected next token to be {t}, " f"not {self.peek_token.token_type}."
         self._errors.append(msg)
 
     def int_val_error(self):
