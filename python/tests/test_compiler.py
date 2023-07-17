@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.monkey import ast, lexer, parser
+from src.monkey import ast, lexer, parser, obj
 from src.monkey import compiler, code
 
 
@@ -13,18 +13,19 @@ class TestCompiler(TestCase):
     def test_compiler_integer_arithmetic(self):
         test_code = "1 + 2"
         expected_const = (1, 2)
-        expected_insts = (
+        insts = [
             code.make(code.OpCode.Constant, 0),
             code.make(code.OpCode.Constant, 1),
-        )
-        program = parse(test_code)
+        ]
+        expected_insts = insts[0] + insts[1]
 
+        program = parse(test_code)
         comp = compiler.Compiler()
         comp.compile(program)
         bytecode = comp.bytecode
         self.assertEqual(len(bytecode.instructions), len(expected_insts))
-        for i, expected in enumerate(expected_insts):
-            self.assertEqual(bytecode.instructions[i], expected)
+        self.assertEqual(bytecode.instructions, expected_insts)
         self.assertEqual(len(bytecode.constants), len(expected_const))
         for i, expected in enumerate(expected_const):
+            self.assertIsInstance(bytecode.constants[i], obj.Integer)
             self.assertEqual(bytecode.constants[i].value, expected)

@@ -6,13 +6,13 @@ from ..code import code
 
 @dataclass
 class Bytecode:
-    instructions: list[bytes]
+    instructions: bytearray
     constants: list[obj.Object]
 
 
 class Compiler:
     def __init__(self) -> None:
-        self.instructions: list[bytes] = []
+        self.instructions: bytearray = bytearray(0)
         self.constants: list[obj.Object] = []
 
     def compile(self, node: ast.Node) -> None:
@@ -37,7 +37,7 @@ class Compiler:
 
     def add_instruction(self, ins: bytes) -> int:
         pos = len(ins)
-        self.instructions.append(ins)
+        self.instructions += ins
         return pos
 
     def emit(self, op: code.OpCode, *operands: int) -> int:

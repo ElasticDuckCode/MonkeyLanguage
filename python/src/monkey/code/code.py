@@ -15,24 +15,23 @@ class Definition:
 OpDefs: dict[OpCode, Definition] = {OpCode.Constant: Definition("Constant", [2])}
 
 
-def instructions_to_string(insts: list[bytes]) -> str:
+def instructions_to_string(insts: bytes) -> str:
     string = ""
-    offset = 0
-    for inst in insts:
-        string += f"{offset:04x} "
-        d = OpDefs[OpCode(inst[0].to_bytes())]
+    ip = 0
+    while ip < len(insts):
+        string += f"{ip:04x} "
+        d = OpDefs[OpCode(insts[ip].to_bytes())]
         string += f"{d.name} "
+        ip += 1
 
-        remain = inst[1:]
-        for width in d.operand_widths:
-            v = int.from_bytes(remain[:width])
+        for i, width in enumerate(d.operand_widths):
+            v = int.from_bytes(insts[ip : ip + width])
             string += f"{v}"
-            remain = remain[width:]
-            if len(remain) > 0:
+            ip += width
+            if i < len(d.operand_widths) - 1:
                 string += " "
             else:
                 string += "\n"
-        offset += len(inst)
 
     return string[:-1]
 

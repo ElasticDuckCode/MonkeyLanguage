@@ -17,9 +17,9 @@ class TestOpCode(TestCase):
 
     def test_code_repr(self):
         instructions = (
-            code.make(code.OpCode.Constant, 1),
-            code.make(code.OpCode.Constant, 2),
-            code.make(code.OpCode.Constant, 65535),
+            code.make(code.OpCode.Constant, 1)
+            + code.make(code.OpCode.Constant, 2)
+            + code.make(code.OpCode.Constant, 65535)
         )
         expected = """0000 Constant 1
 0003 Constant 2
