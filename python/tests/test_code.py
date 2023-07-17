@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 from src.monkey import code
 
 
@@ -8,7 +9,9 @@ class TestOpCode(TestCase):
             (
                 code.OpCode.Constant,
                 [65534],
-                bytes(code.OpCode.Constant.value) + (255).to_bytes() + (254).to_bytes(),
+                bytes(code.OpCode.Constant.value)
+                + (255).to_bytes(1, "big")
+                + (254).to_bytes(1, "big"),
             ),
         )
         for opcode, operands, expected in cases:

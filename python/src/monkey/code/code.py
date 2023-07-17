@@ -20,12 +20,12 @@ def instructions_to_string(insts: bytes) -> str:
     ip = 0
     while ip < len(insts):
         string += f"{ip:04x} "
-        d = OpDefs[OpCode(insts[ip].to_bytes())]
+        d = OpDefs[OpCode(insts[ip].to_bytes(1, "big"))]
         string += f"{d.name} "
         ip += 1
 
         for i, width in enumerate(d.operand_widths):
-            v = int.from_bytes(insts[ip : ip + width])
+            v = int.from_bytes(insts[ip : ip + width], "big")
             string += f"{v}"
             ip += width
             if i < len(d.operand_widths) - 1:

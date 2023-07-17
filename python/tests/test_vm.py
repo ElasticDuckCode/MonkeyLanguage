@@ -1,7 +1,7 @@
-from unittest import TestCase
 from typing import Any, cast
-from src.monkey import ast, lexer, parser, obj
-from src.monkey import compiler, vm
+from unittest import TestCase
+
+from src.monkey import ast, compiler, lexer, obj, parser, vm
 
 
 def parse(src_code: str) -> ast.Program:
@@ -26,7 +26,8 @@ class TestVirtualMachine(TestCase):
                 self.assertIsInstance(actual, obj.Integer)
                 actual = cast(obj.Integer, actual)
                 self.assertEqual(expected, actual.value)
-        self.assertEqual(True, False)
+            case _:
+                self.assertEqual(True, False)
 
     def test_vm_integer_arithmetic(self):
         # Note: Expected result is no the evaluation of the expression,
@@ -34,6 +35,7 @@ class TestVirtualMachine(TestCase):
         tests = (
             ("1", 1),
             ("2", 2),
+            ("245", 245),
             ("1 + 2", 2),  # FIXME
         )
         for src_code, expected in tests:
