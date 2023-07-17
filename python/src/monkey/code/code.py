@@ -4,6 +4,7 @@ from enum import Enum
 
 class OpCode(Enum):
     Constant = b"\x01"
+    Add = b"\x02"
 
 
 @dataclass
@@ -12,7 +13,10 @@ class Definition:
     operand_widths: list[int]
 
 
-OpDefs: dict[OpCode, Definition] = {OpCode.Constant: Definition("Constant", [2])}
+OpDefs: dict[OpCode, Definition] = {
+    OpCode.Constant: Definition("Constant", [2]),
+    OpCode.Add: Definition("Add", []),
+}
 
 
 def instructions_to_string(insts: bytes) -> str:

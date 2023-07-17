@@ -1,6 +1,6 @@
 from unittest import TestCase
-from src.monkey import ast, lexer, parser, obj
-from src.monkey import compiler, code
+
+from src.monkey import ast, code, compiler, lexer, obj, parser
 
 
 def parse(src_code: str) -> ast.Program:
@@ -16,9 +16,11 @@ class TestCompiler(TestCase):
         insts = [
             code.make(code.OpCode.Constant, 0),
             code.make(code.OpCode.Constant, 1),
+            code.make(code.OpCode.Add),
         ]
-        expected_insts = insts[0] + insts[1]
-
+        expected_insts = b""
+        for inst in insts:
+            expected_insts += inst
         program = parse(test_code)
         comp = compiler.Compiler()
         comp.compile(program)

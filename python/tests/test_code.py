@@ -13,6 +13,7 @@ class TestOpCode(TestCase):
                 + (255).to_bytes(1, "big")
                 + (254).to_bytes(1, "big"),
             ),
+            (code.OpCode.Add, [], bytes(code.OpCode.Add.value)),
         )
         for opcode, operands, expected in cases:
             instruction = code.make(opcode, *operands)
@@ -23,9 +24,11 @@ class TestOpCode(TestCase):
             code.make(code.OpCode.Constant, 1)
             + code.make(code.OpCode.Constant, 2)
             + code.make(code.OpCode.Constant, 65535)
+            + code.make(code.OpCode.Add)
         )
         expected = """0000 Constant 1
 0003 Constant 2
-0006 Constant 65535"""
+0006 Constant 65535
+0009 Add"""
         received = code.instructions_to_string(instructions)
         self.assertEqual(received, expected)

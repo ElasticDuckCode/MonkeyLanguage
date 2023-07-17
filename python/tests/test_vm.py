@@ -30,13 +30,11 @@ class TestVirtualMachine(TestCase):
                 self.assertEqual(True, False)
 
     def test_vm_integer_arithmetic(self):
-        # Note: Expected result is no the evaluation of the expression,
-        #       but value on top of the vm stack.
         tests = (
             ("1", 1),
             ("2", 2),
             ("245", 245),
-            ("1 + 2", 2),  # FIXME
+            ("1 + 2", 3),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)

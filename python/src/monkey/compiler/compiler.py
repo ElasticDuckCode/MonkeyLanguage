@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+
 from ..ast import ast
-from ..obj import obj
 from ..code import code
+from ..obj import obj
 
 
 @dataclass
@@ -22,13 +23,16 @@ class Compiler:
                     self.compile(stmt)
             case ast.ExpressionStatement():
                 self.compile(node.expression)
-            case ast.InfixExpression():
+            case ast.InfixExpression(operator="+"):
                 self.compile(node.left)
                 self.compile(node.right)
+                self.emit(code.OpCode.Add)
             case ast.IntegerLiteral():
                 integer = obj.Integer(node.value)
                 ident = self.add_constant(integer)
                 self.emit(code.OpCode.Constant, ident)
+            case _:
+                raise RuntimeError(f"failed to compiler node: {node}")
         return None
 
     def add_constant(self, c: obj.Object) -> int:
