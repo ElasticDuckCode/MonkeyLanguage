@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pprint import pformat
 
 from ..ast import ast
 from ..code import code
@@ -15,6 +16,12 @@ class Compiler:
     def __init__(self) -> None:
         self.instructions: bytearray = bytearray(0)
         self.constants: list[obj.Object] = []
+        self.op_dict: dict[str, code.OpCode] = {
+            "+": code.OpCode.Add,
+            "-": code.OpCode.Sub,
+            "*": code.OpCode.Mul,
+            "/": code.OpCode.Div,
+        }
 
     def compile(self, node: ast.Node) -> None:
         match node:
@@ -23,16 +30,21 @@ class Compiler:
                     self.compile(stmt)
             case ast.ExpressionStatement():
                 self.compile(node.expression)
-            case ast.InfixExpression(operator="+"):
+                self.emit(code.OpCode.Pop)
+            case ast.InfixExpression(operator=op):
                 self.compile(node.left)
                 self.compile(node.right)
-                self.emit(code.OpCode.Add)
+                self.emit(self.op_dict[op])
             case ast.IntegerLiteral():
                 integer = obj.Integer(node.value)
                 ident = self.add_constant(integer)
-                self.emit(code.OpCode.Constant, ident)
+                self.emit(code.OpCode.PConstant, ident)
+            case ast.Boolean(value=True):
+                self.emit(code.OpCode.PTrue)
+            case ast.Boolean(value=False):
+                self.emit(code.OpCode.PFalse)
             case _:
-                raise RuntimeError(f"failed to compiler node: {node}")
+                raise RuntimeError(f"failed to compile node:\n{pformat(node)}")
         return None
 
     def add_constant(self, c: obj.Object) -> int:

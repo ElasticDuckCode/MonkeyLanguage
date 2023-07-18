@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Final, NewType, List, Callable, Tuple, Dict
+from typing import Callable, Dict, Final, List, NewType, Tuple
 
 from ..ast import ast
-
 
 ObjectType = NewType("ObjectType", str)
 

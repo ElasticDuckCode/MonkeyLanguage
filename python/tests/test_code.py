@@ -7,9 +7,9 @@ class TestOpCode(TestCase):
     def test_code_make(self):
         cases = (
             (
-                code.OpCode.Constant,
+                code.OpCode.PConstant,
                 [65534],
-                bytes(code.OpCode.Constant.value)
+                bytes(code.OpCode.PConstant.value)
                 + (255).to_bytes(1, "big")
                 + (254).to_bytes(1, "big"),
             ),
@@ -21,14 +21,14 @@ class TestOpCode(TestCase):
 
     def test_code_repr(self):
         instructions = (
-            code.make(code.OpCode.Constant, 1)
-            + code.make(code.OpCode.Constant, 2)
-            + code.make(code.OpCode.Constant, 65535)
+            code.make(code.OpCode.PConstant, 1)
+            + code.make(code.OpCode.PConstant, 2)
+            + code.make(code.OpCode.PConstant, 65535)
             + code.make(code.OpCode.Add)
         )
-        expected = """0000 Constant 1
-0003 Constant 2
-0006 Constant 65535
+        expected = """0000 PConstant 1
+0003 PConstant 2
+0006 PConstant 65535
 0009 Add"""
         received = code.instructions_to_string(instructions)
         self.assertEqual(received, expected)

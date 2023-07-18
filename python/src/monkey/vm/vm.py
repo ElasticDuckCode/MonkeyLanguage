@@ -21,6 +21,10 @@ class VirtualMachine:
         else:
             return self.stack[self.sp - 1]
 
+    @property
+    def last_popped(self) -> obj.Object | None:
+        return self.stack[self.sp]
+
     def push(self, o: obj.Object) -> None:
         if self.sp > STACK_SIZE:
             raise OverflowError("Stack overflow.")
@@ -40,7 +44,7 @@ class VirtualMachine:
             op = code.OpCode(self.instructions[ip].to_bytes(1, "big"))
             ip += 1
             match op:
-                case code.OpCode.Constant:
+                case code.OpCode.PConstant:
                     const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
                     ip += 2
                     self.push(self.constants[const_idx])
@@ -49,5 +53,26 @@ class VirtualMachine:
                     left = cast(obj.Integer, self.pop())
                     result = left.value + right.value
                     self.push(obj.Integer(result))
+                case code.OpCode.Sub:
+                    right = cast(obj.Integer, self.pop())
+                    left = cast(obj.Integer, self.pop())
+                    result = left.value - right.value
+                    self.push(obj.Integer(result))
+                case code.OpCode.Mul:
+                    right = cast(obj.Integer, self.pop())
+                    left = cast(obj.Integer, self.pop())
+                    result = left.value * right.value
+                    self.push(obj.Integer(result))
+                case code.OpCode.Div:
+                    right = cast(obj.Integer, self.pop())
+                    left = cast(obj.Integer, self.pop())
+                    result = left.value // right.value
+                    self.push(obj.Integer(result))
+                case code.OpCode.PTrue:
+                    self.push(obj.TRUE)
+                case code.OpCode.PFalse:
+                    self.push(obj.FALSE)
+                case code.OpCode.Pop:
+                    self.pop()
                 case _:
                     raise NotImplementedError("OpCode not yet supported")

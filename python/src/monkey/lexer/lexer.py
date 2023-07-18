@@ -14,13 +14,13 @@ class Lexer:
         self.read_char()
 
     def is_letter(self) -> bool:
-        lower = ord('a') <= self.ch <= ord('z')
-        upper = ord('A') <= self.ch <= ord('Z')
-        under = ord('_') == self.ch
+        lower = ord("a") <= self.ch <= ord("z")
+        upper = ord("A") <= self.ch <= ord("Z")
+        under = ord("_") == self.ch
         return lower or upper or under
 
     def is_number(self) -> bool:
-        return ord('0') <= self.ch <= ord('9')
+        return ord("0") <= self.ch <= ord("9")
 
     def read_char(self) -> None:
         if self.read_position >= len(self.input):
@@ -37,20 +37,20 @@ class Lexer:
             return ord(self.input[self.read_position])
 
     def skip_whitespace(self) -> None:
-        while chr(self.ch) in [' ', '\t', '\n', '\r']:
+        while chr(self.ch) in [" ", "\t", "\n", "\r"]:
             self.read_char()
 
     def read_identifier(self) -> str:
         start = self.position
         while self.is_letter():
             self.read_char()
-        return self.input[start:self.position]
+        return self.input[start : self.position]
 
     def read_number(self) -> str:
         start = self.position
         while self.is_number():
             self.read_char()
-        return self.input[start:self.position]
+        return self.input[start : self.position]
 
     def read_string(self) -> str:
         start = self.position + 1
@@ -63,64 +63,64 @@ class Lexer:
             if not esc:
                 if self.ch == ord('"'):
                     break
-                if self.ch == ord('\\'):
+                if self.ch == ord("\\"):
                     esc = True
                     esc_idx.append(self.position)
             else:
                 esc = False
         # process escape chars using python decode
-        bytestring = self.input[start:self.position].encode()
+        bytestring = self.input[start : self.position].encode()
         return bytestring.decode("unicode_escape")
 
     def next_token(self) -> token.Token:
         tok = None
         self.skip_whitespace()
         match chr(self.ch):
-            case '=':
-                if chr(self.peak_char()) == '=':
+            case "=":
+                if chr(self.peak_char()) == "=":
                     ch = chr(self.ch)
                     self.read_char()
-                    tok = token.Token(token.EQ, ch+chr(self.ch))
+                    tok = token.Token(token.EQ, ch + chr(self.ch))
                 else:
                     tok = token.Token(token.ASSIGN, chr(self.ch))
-            case ';':
+            case ";":
                 tok = token.Token(token.SEMICOLON, chr(self.ch))
-            case ':':
+            case ":":
                 tok = token.Token(token.COLON, chr(self.ch))
-            case '(':
+            case "(":
                 tok = token.Token(token.LPAREN, chr(self.ch))
-            case ')':
+            case ")":
                 tok = token.Token(token.RPAREN, chr(self.ch))
-            case ',':
+            case ",":
                 tok = token.Token(token.COMMA, chr(self.ch))
-            case '+':
+            case "+":
                 tok = token.Token(token.PLUS, chr(self.ch))
-            case '-':
+            case "-":
                 tok = token.Token(token.MINUS, chr(self.ch))
-            case '!':
-                if chr(self.peak_char()) == '=':
+            case "!":
+                if chr(self.peak_char()) == "=":
                     ch = chr(self.ch)
                     self.read_char()
-                    tok = token.Token(token.NOT_EQ, ch+chr(self.ch))
+                    tok = token.Token(token.NOT_EQ, ch + chr(self.ch))
                 else:
                     tok = token.Token(token.BANG, chr(self.ch))
-            case '*':
+            case "*":
                 tok = token.Token(token.ASTERISK, chr(self.ch))
-            case '/':
+            case "/":
                 tok = token.Token(token.SLASH, chr(self.ch))
-            case '<':
+            case "<":
                 tok = token.Token(token.LT, chr(self.ch))
-            case '>':
+            case ">":
                 tok = token.Token(token.GT, chr(self.ch))
-            case '{':
+            case "{":
                 tok = token.Token(token.LBRACE, chr(self.ch))
-            case '}':
+            case "}":
                 tok = token.Token(token.RBRACE, chr(self.ch))
-            case '[':
+            case "[":
                 tok = token.Token(token.LBRACKET, chr(self.ch))
-            case ']':
+            case "]":
                 tok = token.Token(token.RBRACKET, chr(self.ch))
-            case '\0':
+            case "\0":
                 tok = token.Token(token.EOF, "")
             case '"':
                 tok = token.Token(token.STRING, self.read_string())
