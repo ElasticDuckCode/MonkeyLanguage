@@ -23,7 +23,6 @@ def log_error(msg: str, details: str, f):
 
 def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
     e = env.Environment()
-
     if rin == sys.stdin:
         print(PROMPT, end="", flush=True, file=rout)
         user_input = rin.readline()
@@ -47,8 +46,8 @@ def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
                     comp = compiler.Compiler()
                     try:
                         comp.compile(program)
-                    except RuntimeError as e:
-                        log_error("Failed to Compile!", str(e), rout)
+                    except RuntimeError as exx:
+                        log_error("Failed to Compile!", str(exx), rout)
 
                     insts = comp.bytecode.instructions
                     print(code.instructions_to_string(insts), file=rout)
@@ -56,8 +55,8 @@ def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
                     machine = vm.VirtualMachine(comp.bytecode)
                     try:
                         machine.run()
-                    except NotImplementedError as e:
-                        log_error("Failed to run Virtual Machine!", str(e), rout)
+                    except NotImplementedError as exx:
+                        log_error("Failed to run Virtual Machine!", str(exx), rout)
 
                     if machine.last_popped:
                         print(

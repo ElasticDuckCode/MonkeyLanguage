@@ -49,23 +49,23 @@ class VirtualMachine:
                     ip += 2
                     self.push(self.constants[const_idx])
                 case code.OpCode.Add:
-                    right = cast(obj.Integer, self.pop())
-                    left = cast(obj.Integer, self.pop())
+                    right = self.pop()
+                    left = self.pop()
                     result = left.value + right.value
                     self.push(obj.Integer(result))
                 case code.OpCode.Sub:
-                    right = cast(obj.Integer, self.pop())
-                    left = cast(obj.Integer, self.pop())
+                    right = self.pop()
+                    left = self.pop()
                     result = left.value - right.value
                     self.push(obj.Integer(result))
                 case code.OpCode.Mul:
-                    right = cast(obj.Integer, self.pop())
-                    left = cast(obj.Integer, self.pop())
+                    right = self.pop()
+                    left = self.pop()
                     result = left.value * right.value
                     self.push(obj.Integer(result))
                 case code.OpCode.Div:
-                    right = cast(obj.Integer, self.pop())
-                    left = cast(obj.Integer, self.pop())
+                    right = self.pop()
+                    left = self.pop()
                     result = left.value // right.value
                     self.push(obj.Integer(result))
                 case code.OpCode.PTrue:
@@ -74,5 +74,34 @@ class VirtualMachine:
                     self.push(obj.FALSE)
                 case code.OpCode.Pop:
                     self.pop()
+                case code.OpCode.Equal:
+                    right = self.pop()
+                    left = self.pop()
+                    if isinstance(left, obj.Integer) and isinstance(right, obj.Integer):
+                        result = obj.TRUE if left.value == right.value else obj.FALSE
+                    else:
+                        result = obj.TRUE if left == right else obj.FALSE
+                    self.push(result)
+                case code.OpCode.NotEqual:
+                    right = self.pop()
+                    left = self.pop()
+                    if isinstance(left, obj.Integer) and isinstance(right, obj.Integer):
+                        result = obj.TRUE if left.value != right.value else obj.FALSE
+                    else:
+                        result = obj.TRUE if left != right else obj.FALSE
+                    self.push(result)
+                case code.OpCode.GreaterThan:
+                    right = self.pop()
+                    left = self.pop()
+                    result = obj.TRUE if left.value > right.value else obj.FALSE
+                    self.push(result)
+                case code.OpCode.Minus:
+                    value = self.pop()
+                    result = -value.value
+                    self.push(obj.Integer(result))
+                case code.OpCode.Bang:
+                    value = self.pop()
+                    result = obj.TRUE if not value.value else obj.FALSE
+                    self.push(result)
                 case _:
                     raise NotImplementedError("OpCode not yet supported")

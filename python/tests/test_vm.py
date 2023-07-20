@@ -25,6 +25,7 @@ class TestVirtualMachine(TestCase):
             case bool():
                 self.assertIsInstance(actual, obj.Boolean)
                 actual = cast(obj.Boolean, actual)
+                self.assertEqual(expected, actual.value)
             case int():
                 self.assertIsInstance(actual, obj.Integer)
                 actual = cast(obj.Integer, actual)
@@ -47,6 +48,10 @@ class TestVirtualMachine(TestCase):
             ("5 * 2 + 10", 20),
             ("5 + 2 * 10", 25),
             ("5 * (2 + 10)", 60),
+            ("-1", -1),
+            ("--1", 1),
+            ("---1", -1),
+            ("50 + -50", 0),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
@@ -55,6 +60,29 @@ class TestVirtualMachine(TestCase):
         tests = (
             ("true", True),
             ("false", False),
+            ("1 < 2", True),
+            ("1 > 2", False),
+            ("1 < 1", False),
+            ("1 > 1", False),
+            ("1 == 1", True),
+            ("1 != 1", False),
+            ("1 == 2", False),
+            ("1 != 2", True),
+            ("true == true", True),
+            ("true != true", False),
+            ("true == false", False),
+            ("true != false", True),
+            ("false == false", True),
+            ("(1 < 2) == true", True),
+            ("(1 < 2) == false", False),
+            ("(1 > 2) == true", False),
+            ("(1 > 2) == false", True),
+            ("!true", False),
+            ("!!true", True),
+            ("!false", True),
+            ("!1", False),
+            ("!(true == true)", False),
+            ("!!(true == true)", True),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
