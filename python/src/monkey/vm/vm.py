@@ -1,4 +1,4 @@
-from typing import Final, cast
+from typing import Final
 
 from ..code import code
 from ..compiler import compiler
@@ -103,5 +103,14 @@ class VirtualMachine:
                     value = self.pop()
                     result = obj.TRUE if not value.value else obj.FALSE
                     self.push(result)
+                case code.OpCode.Jump:
+                    const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
+                    ip = const_idx
+                case code.OpCode.JumpNT:
+                    const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
+                    ip += 2
+                    condition = self.pop()
+                    if condition is obj.FALSE:
+                        ip = const_idx
                 case _:
                     raise NotImplementedError("OpCode not yet supported")

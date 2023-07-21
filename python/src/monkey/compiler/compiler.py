@@ -72,10 +72,20 @@ class Compiler:
             case ast.IfExpression():
                 if node.condition and node.consequence:
                     self.compile(node.condition)
-                    self.emit(code.OpCode.JumpNT, 9999)
+                    jump_end_if = self.emit(code.OpCode.JumpNT, 9999)
                     self.compile(node.consequence)
                     if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
                         self.remove_last_instruction()
+                    end_if = len(self.instructions)
+                    if node.alternative:
+                        jump_end_else = self.emit(code.OpCode.Jump, 9999)
+                        end_if = len(self.instructions)
+                        self.compile(node.alternative)
+                        if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
+                            self.remove_last_instruction()
+                        end_else = len(self.instructions)
+                        self.change_instruction_operand(jump_end_else, end_else)
+                    self.change_instruction_operand(jump_end_if, end_if)
                 else:
                     raise RuntimeError(
                         (
@@ -96,8 +106,20 @@ class Compiler:
         self.instructions += ins
         return pos
 
+    def replace_instruction(self, pos: int, ins: bytes) -> None:
+        # WARNING: does not confirm instruction length matches
+        #          one being replaced.
+        self.instructions[pos : pos + len(ins)] = ins
+
+    def change_instruction_operand(self, pos: int, operand: int) -> None:
+        # TODO: only replaces 1 operand
+        op = code.OpCode(self.instructions[pos].to_bytes(1, "big"))
+        new_inst = code.make(op, operand)
+        self.replace_instruction(pos, new_inst)
+
     def remove_last_instruction(self) -> None:
         if self.last_inst:
+            # TODO: only removes one byte
             pos = self.last_inst.position
             self.instructions = self.instructions[:pos]
             self.last_inst = self.prev_inst

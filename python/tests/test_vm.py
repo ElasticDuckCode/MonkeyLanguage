@@ -86,3 +86,16 @@ class TestVirtualMachine(TestCase):
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
+
+    def test_vm_conditionals(self):
+        tests = (
+            ("if (true) { 10; }", 10),
+            ("if (true) { 10; } else { 20; }", 10),
+            ("if (false) { 10; } else { 20; }", 20),
+            ("if (1) { 10; }", 10),
+            ("if (1 < 2) { 10; }", 10),
+            ("if (1 < 2) { 10; } else { 20; }", 10),
+            ("if (1 > 2) { 10; } else { 20; }", 20),
+        )
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
