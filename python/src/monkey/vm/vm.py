@@ -114,11 +114,15 @@ class VirtualMachine:
                     value = self.pop()
                     if hasattr(value, "value"):
                         result = -value.value
+                    else:
+                        result = obj.NULL
                     self.push(obj.Integer(result))
                 case code.OpCode.Bang:
                     value = self.pop()
                     if hasattr(value, "value"):
                         result = obj.TRUE if not value.value else obj.FALSE
+                    elif value is obj.NULL:
+                        result = obj.TRUE
                     else:
                         result = obj.NULL
                     self.push(result)
@@ -129,7 +133,7 @@ class VirtualMachine:
                     const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
                     ip += 2
                     condition = self.pop()
-                    if condition is obj.FALSE:
+                    if condition in [obj.FALSE, obj.NULL]:
                         ip = const_idx
                 case code.OpCode.PNull:
                     self.push(obj.NULL)

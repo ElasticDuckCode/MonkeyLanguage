@@ -86,6 +86,7 @@ class TestVirtualMachine(TestCase):
             ("!1", False),
             ("!(true == true)", False),
             ("!!(true == true)", True),
+            ("!(if (false) { 5; })", True),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
@@ -100,6 +101,8 @@ class TestVirtualMachine(TestCase):
             ("if (1 < 2) { 10; }", 10),
             ("if (1 < 2) { 10; } else { 20; }", 10),
             ("if (1 > 2) { 10; } else { 20; }", 20),
+            ("if (null) { 10 } else { 20 }", 20),
+            ("if ((if (false) { 10 })) { 10 } else { 20 }", 20),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)

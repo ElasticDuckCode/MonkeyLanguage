@@ -66,6 +66,8 @@ class Compiler:
                 self.emit(code.OpCode.PTrue)
             case ast.Boolean(value=False):
                 self.emit(code.OpCode.PFalse)
+            case ast.Identifier(value="null"):
+                self.emit(code.OpCode.PNull)
             case ast.BlockStatement():
                 for s in node.statements:
                     self.compile(s)
