@@ -12,6 +12,12 @@ class Bytecode:
     constants: list[obj.Object]
 
 
+@dataclass
+class EmittedInstruction:
+    opcode: code.OpCode
+    position: int
+
+
 class Compiler:
     def __init__(self) -> None:
         self.instructions: bytearray = bytearray(0)
@@ -26,6 +32,8 @@ class Compiler:
             ">": code.OpCode.GreaterThan,
             "<": code.OpCode.GreaterThan,
         }
+        self.last_inst: EmittedInstruction | None = None
+        self.prev_inst: EmittedInstruction | None = None
 
     def compile(self, node: ast.Node) -> None:
         match node:
@@ -66,9 +74,14 @@ class Compiler:
                     self.compile(node.condition)
                     self.emit(code.OpCode.JumpNT, 9999)
                     self.compile(node.consequence)
+                    if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
+                        self.remove_last_instruction()
                 else:
                     raise RuntimeError(
-                        f"failed to compile node:\n{pformat(node)}. Conditional missing condition or consequence."
+                        (
+                            f"failed to compile node:\n{pformat(node)}."
+                            " Conditional missing condition or consequence."
+                        )
                     )
             case _:
                 raise RuntimeError(f"failed to compile node:\n{pformat(node)}")
@@ -79,14 +92,25 @@ class Compiler:
         return len(self.constants) - 1
 
     def add_instruction(self, ins: bytes) -> int:
-        pos = len(ins)
+        pos = len(self.instructions)
         self.instructions += ins
         return pos
+
+    def remove_last_instruction(self) -> None:
+        if self.last_inst:
+            pos = self.last_inst.position
+            self.instructions = self.instructions[:pos]
+            self.last_inst = self.prev_inst
 
     def emit(self, op: code.OpCode, *operands: int) -> int:
         ins = code.make(op, *operands)
         pos = self.add_instruction(ins)
+        self.set_last_instruction(op, pos)
         return pos
+
+    def set_last_instruction(self, op: code.OpCode, pos: int) -> None:
+        self.prev_inst = self.last_inst
+        self.last_inst = EmittedInstruction(op, pos)
 
     @property
     def bytecode(self) -> Bytecode:
