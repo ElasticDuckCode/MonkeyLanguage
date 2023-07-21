@@ -90,6 +90,7 @@ class TestVirtualMachine(TestCase):
     def test_vm_conditionals(self):
         tests = (
             ("if (true) { 10; }", 10),
+            ("if (false) { 10; }", None),
             ("if (true) { 10; } else { 20; }", 10),
             ("if (false) { 10; } else { 20; }", 20),
             ("if (1) { 10; }", 10),

@@ -76,15 +76,16 @@ class Compiler:
                     self.compile(node.consequence)
                     if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
                         self.remove_last_instruction()
+                    jump_end_else = self.emit(code.OpCode.Jump, 9999)
                     end_if = len(self.instructions)
-                    if node.alternative:
-                        jump_end_else = self.emit(code.OpCode.Jump, 9999)
-                        end_if = len(self.instructions)
+                    if node.alternative is not None:
                         self.compile(node.alternative)
-                        if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
-                            self.remove_last_instruction()
-                        end_else = len(self.instructions)
-                        self.change_instruction_operand(jump_end_else, end_else)
+                    else:
+                        self.emit(code.OpCode.PNull)
+                    if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
+                        self.remove_last_instruction()
+                    end_else = len(self.instructions)
+                    self.change_instruction_operand(jump_end_else, end_else)
                     self.change_instruction_operand(jump_end_if, end_if)
                 else:
                     raise RuntimeError(

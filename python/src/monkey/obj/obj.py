@@ -71,10 +71,6 @@ class Boolean(Object):
         return str(self.value).lower()  # True -> true
 
 
-TRUE: Final[Boolean] = Boolean(True)
-FALSE: Final[Boolean] = Boolean(False)
-
-
 @dataclass(eq=True, frozen=True)
 class Null(Object):
     @property
@@ -86,6 +82,8 @@ class Null(Object):
         return "null"
 
 
+TRUE: Final[Boolean] = Boolean(True)
+FALSE: Final[Boolean] = Boolean(False)
 NULL: Final[Null] = Null()
 
 

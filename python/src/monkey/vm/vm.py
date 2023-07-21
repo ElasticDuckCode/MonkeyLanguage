@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Final, cast
 
 from ..code import code
 from ..compiler import compiler
@@ -11,7 +11,7 @@ class VirtualMachine:
     def __init__(self, bytecode: compiler.Bytecode) -> None:
         self.instructions: bytes = bytecode.instructions
         self.constants: list[obj.Object] = bytecode.constants
-        self.stack: list[obj.Object | None] = [None] * STACK_SIZE
+        self.stack: list[obj.Object] = [obj.NULL] * STACK_SIZE
         self.sp: int = 0
 
     @property
@@ -31,9 +31,9 @@ class VirtualMachine:
         self.stack[self.sp] = o
         self.sp += 1
 
-    def pop(self) -> obj.Object | None:
+    def pop(self) -> obj.Object:
         if self.sp - 1 < 0:
-            return None
+            return obj.NULL
         o = self.stack[self.sp - 1]
         self.sp -= 1
         return o
@@ -51,7 +51,8 @@ class VirtualMachine:
                 case code.OpCode.Add:
                     right = self.pop()
                     left = self.pop()
-                    result = left.value + right.value
+                    if isinstance(left, obj.Integer) and isinstance(right, obj.Integer):
+                        result = left.value + right.value
                     self.push(obj.Integer(result))
                 case code.OpCode.Sub:
                     right = self.pop()
@@ -112,5 +113,7 @@ class VirtualMachine:
                     condition = self.pop()
                     if condition is obj.FALSE:
                         ip = const_idx
+                case code.OpCode.PNull:
+                    self.push(obj.NULL)
                 case _:
                     raise NotImplementedError("OpCode not yet supported")

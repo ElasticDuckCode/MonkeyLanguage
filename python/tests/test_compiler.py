@@ -159,20 +159,34 @@ class TestCompiler(TestCase):
     def test_compiler_conditionals(self):
         test_code_list = [
             "if (true) { 10 }; 3333;",
+            "if (false) { 10 }; 3333;",
             "if (true) { 10 } else { 20 }; 3333;",
         ]
         expected_const_list = [
+            [10, 3333],
             [10, 3333],
             [10, 20, 3333],
         ]
         insts_list = [
             (
-                code.make(code.OpCode.PTrue),  # 0000
-                code.make(code.OpCode.JumpNT, 7),  # 0001
-                code.make(code.OpCode.PConstant, 0),  # 0004
-                code.make(code.OpCode.Pop),  # 0007
-                code.make(code.OpCode.PConstant, 1),  # 0008
-                code.make(code.OpCode.Pop),  # 0011
+                code.make(code.OpCode.PTrue),
+                code.make(code.OpCode.JumpNT, 10),
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Jump, 11),
+                code.make(code.OpCode.PNull),
+                code.make(code.OpCode.Pop),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Pop),
+            ),
+            (
+                code.make(code.OpCode.PFalse),
+                code.make(code.OpCode.JumpNT, 10),
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Jump, 11),
+                code.make(code.OpCode.PNull),
+                code.make(code.OpCode.Pop),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Pop),
             ),
             (
                 code.make(code.OpCode.PTrue),

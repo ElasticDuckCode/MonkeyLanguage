@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import Dict, List
 
 from ..token import token
 
@@ -9,28 +9,33 @@ from ..token import token
 class Node(ABC):
     @property
     @abstractmethod
-    def token_literal(self) -> str: pass
+    def token_literal(self) -> str:
+        pass
+
     @property
     @abstractmethod
-    def string(self) -> str: pass
+    def string(self) -> str:
+        pass
 
 
 @dataclass(eq=True, frozen=True)
 class Statement(Node):
     @abstractmethod
-    def statement_node(self) -> None: pass
+    def statement_node(self) -> None:
+        pass
 
 
 @dataclass(eq=True, frozen=True)
 class Expression(Node):
     @abstractmethod
-    def expression_node(self) -> None: pass
+    def expression_node(self) -> None:
+        pass
 
 
 @dataclass(eq=True, frozen=True)
 class Program(Node):
-    """Serves as the root node of the AST
-    """
+    """Serves as the root node of the AST"""
+
     statements: List = field(default_factory=list)
 
     @property
@@ -53,7 +58,8 @@ class Identifier(Expression):
     tok: token.Token
     value: str
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -70,7 +76,8 @@ class LetStatement(Statement):
     name: Identifier
     value: Expression
 
-    def statement_node(self) -> None: return
+    def statement_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -93,7 +100,8 @@ class ReturnStatement(Statement):
     tok: token.Token
     value: Expression
 
-    def statement_node(self) -> None: return
+    def statement_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -114,7 +122,8 @@ class ExpressionStatement(Statement):
     tok: token.Token
     expression: Expression
 
-    def statement_node(self) -> None: return
+    def statement_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -133,7 +142,8 @@ class IntegerLiteral(Expression):
     tok: token.Token
     value: int
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -149,7 +159,8 @@ class StringLiteral(Expression):
     tok: token.Token
     value: str
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -165,7 +176,8 @@ class ArrayLiteral(Expression):
     tok: token.Token
     elements: List[Expression] | None
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -185,7 +197,8 @@ class HashLiteral(Expression):
     tok: token.Token
     pairs: Dict[Expression | None, Expression | None]
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -205,7 +218,8 @@ class Boolean(Expression):
     tok: token.Token
     value: bool
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -222,7 +236,8 @@ class PrefixExpression(Expression):
     operator: str
     right: Expression
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -240,7 +255,8 @@ class InfixExpression(Expression):
     operator: str
     right: Expression
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -248,7 +264,9 @@ class InfixExpression(Expression):
 
     @property
     def string(self) -> str:
-        return "(" + self.left.string + " " + self.operator + " " + self.right.string + ")"
+        return (
+            "(" + self.left.string + " " + self.operator + " " + self.right.string + ")"
+        )
 
 
 @dataclass(eq=True, frozen=True)
@@ -256,7 +274,8 @@ class BlockStatement(Statement):
     tok: token.Token
     statements: List[Statement]
 
-    def statement_node(self) -> None: return
+    def statement_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -274,7 +293,8 @@ class IfExpression(Expression):
     consequence: BlockStatement | None
     alternative: BlockStatement | None
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -298,7 +318,8 @@ class FunctionLiteral(Expression):
     parameters: List[Identifier] | None
     body: BlockStatement | None
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -322,7 +343,8 @@ class CallExpression(Expression):
     function: Expression | None
     arguements: List[Expression] | None
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:
@@ -346,7 +368,8 @@ class IndexExpression(Expression):
     left: Expression | None
     index: Expression | None
 
-    def expression_node(self) -> None: return
+    def expression_node(self) -> None:
+        return
 
     @property
     def token_literal(self) -> str:

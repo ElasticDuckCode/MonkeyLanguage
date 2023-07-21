@@ -18,6 +18,7 @@ class OpCode(Enum):
     Bang = b"\x0d"
     Jump = b"\x0e"
     JumpNT = b"\x0f"
+    PNull = b"\x10"
 
 
 @dataclass
@@ -42,6 +43,7 @@ OpDefs: dict[OpCode, Definition] = {
     OpCode.Bang: Definition(OpCode.Bang.name, []),
     OpCode.Jump: Definition(OpCode.Jump.name, [2]),
     OpCode.JumpNT: Definition(OpCode.JumpNT.name, [2]),
+    OpCode.PNull: Definition(OpCode.PNull.name, []),
 }
 
 
