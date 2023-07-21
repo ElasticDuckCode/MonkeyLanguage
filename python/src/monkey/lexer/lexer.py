@@ -14,10 +14,8 @@ class Lexer:
         self.read_char()
 
     def is_letter(self) -> bool:
-        lower = ord("a") <= self.ch <= ord("z")
-        upper = ord("A") <= self.ch <= ord("Z")
-        under = ord("_") == self.ch
-        return lower or upper or under
+        char = chr(self.ch)
+        return char.isalpha() or char == "_"
 
     def is_number(self) -> bool:
         return ord("0") <= self.ch <= ord("9")
@@ -37,7 +35,7 @@ class Lexer:
             return ord(self.input[self.read_position])
 
     def skip_whitespace(self) -> None:
-        while chr(self.ch) in [" ", "\t", "\n", "\r"]:
+        while chr(self.ch).isspace():
             self.read_char()
 
     def read_identifier(self) -> str:
