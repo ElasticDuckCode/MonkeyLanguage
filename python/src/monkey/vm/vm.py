@@ -51,23 +51,34 @@ class VirtualMachine:
                 case code.OpCode.Add:
                     right = self.pop()
                     left = self.pop()
-                    if isinstance(left, obj.Integer) and isinstance(right, obj.Integer):
+                    if hasattr(left, "value") and hasattr(right, "value"):
                         result = left.value + right.value
+                    else:
+                        result = obj.NULL
                     self.push(obj.Integer(result))
                 case code.OpCode.Sub:
                     right = self.pop()
                     left = self.pop()
-                    result = left.value - right.value
+                    if hasattr(left, "value") and hasattr(right, "value"):
+                        result = left.value - right.value
+                    else:
+                        result = obj.NULL
                     self.push(obj.Integer(result))
                 case code.OpCode.Mul:
                     right = self.pop()
                     left = self.pop()
-                    result = left.value * right.value
+                    if hasattr(left, "value") and hasattr(right, "value"):
+                        result = left.value * right.value
+                    else:
+                        result = obj.NULL
                     self.push(obj.Integer(result))
                 case code.OpCode.Div:
                     right = self.pop()
                     left = self.pop()
-                    result = left.value // right.value
+                    if hasattr(left, "value") and hasattr(right, "value"):
+                        result = left.value // right.value
+                    else:
+                        result = obj.NULL
                     self.push(obj.Integer(result))
                 case code.OpCode.PTrue:
                     self.push(obj.TRUE)
@@ -94,15 +105,22 @@ class VirtualMachine:
                 case code.OpCode.GreaterThan:
                     right = self.pop()
                     left = self.pop()
-                    result = obj.TRUE if left.value > right.value else obj.FALSE
+                    if hasattr(left, "value") and hasattr(right, "value"):
+                        result = obj.TRUE if left.value > right.value else obj.FALSE
+                    else:
+                        result = obj.NULL
                     self.push(result)
                 case code.OpCode.Minus:
                     value = self.pop()
-                    result = -value.value
+                    if hasattr(value, "value"):
+                        result = -value.value
                     self.push(obj.Integer(result))
                 case code.OpCode.Bang:
                     value = self.pop()
-                    result = obj.TRUE if not value.value else obj.FALSE
+                    if hasattr(value, "value"):
+                        result = obj.TRUE if not value.value else obj.FALSE
+                    else:
+                        result = obj.NULL
                     self.push(result)
                 case code.OpCode.Jump:
                     const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")

@@ -30,6 +30,9 @@ class TestVirtualMachine(TestCase):
                 self.assertIsInstance(actual, obj.Integer)
                 actual = cast(obj.Integer, actual)
                 self.assertEqual(expected, actual.value)
+            case None:
+                self.assertIsInstance(actual, obj.Null)
+                self.assertEqual(expected, None)
             case _:
                 self.assertEqual(True, False)
 
