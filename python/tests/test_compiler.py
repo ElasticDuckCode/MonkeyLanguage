@@ -204,3 +204,41 @@ class TestCompiler(TestCase):
             test_code_list, expected_const_list, insts_list
         ):
             self.verify_compiler(test_code, expected_const, insts)
+
+    def test_compiler_global_let_statements(self):
+        test_code_list = [
+            "let one = 1; let two = 2;",
+            "let one = 1; one;",
+            "let one = 1; let two = one; two;",
+        ]
+        expected_const_list = [
+            (1, 2),
+            (1,),
+            (1,),
+        ]
+        insts_list = [
+            (
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.SetGlobal, 1),
+            ),
+            (
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.GetGlobal, 0),
+                code.make(code.OpCode.Pop),
+            ),
+            (
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.GetGlobal, 0),
+                code.make(code.OpCode.SetGlobal, 1),
+                code.make(code.OpCode.GetGlobal, 1),
+                code.make(code.OpCode.Pop),
+            ),
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)

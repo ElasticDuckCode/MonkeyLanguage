@@ -19,6 +19,8 @@ class OpCode(Enum):
     Jump = b"\x0e"
     JumpNT = b"\x0f"
     PNull = b"\x10"
+    SetGlobal = b"\x11"
+    GetGlobal = b"\x12"
 
 
 @dataclass
@@ -44,6 +46,8 @@ OpDefs: dict[OpCode, Definition] = {
     OpCode.Jump: Definition(OpCode.Jump.name, [2]),
     OpCode.JumpNT: Definition(OpCode.JumpNT.name, [2]),
     OpCode.PNull: Definition(OpCode.PNull.name, []),
+    OpCode.GetGlobal: Definition(OpCode.GetGlobal.name, [2]),
+    OpCode.SetGlobal: Definition(OpCode.SetGlobal.name, [2]),
 }
 
 

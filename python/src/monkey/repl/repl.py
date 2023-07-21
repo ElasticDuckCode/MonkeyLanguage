@@ -21,7 +21,9 @@ def log_error(msg: str, details: str, f):
     return
 
 
-def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
+def start(
+    rin: TextIO = sys.stdin, mode: str = "interp", rout: TextIO = sys.stdout
+) -> None:
     e = env.Environment()
     if rin == sys.stdin:
         print(PROMPT, end="", flush=True, file=rout)
@@ -40,29 +42,33 @@ def start(rin: TextIO = sys.stdin, rout: TextIO = sys.stdout) -> None:
                 if len(par.errors):
                     log_error("Parsing Error!", par.error_str + "\n:(", rout)
                 else:
-                    # evaluated = eval.eval(program, e)
-                    # if evaluated is not None:
-                    #     print("[Output] " + evaluated.inspect + "\n", file=rout)
-                    comp = compiler.Compiler()
-                    try:
-                        comp.compile(program)
-                    except RuntimeError as exx:
-                        log_error("Failed to Compile!", str(exx), rout)
+                    if mode == "interp":
+                        evaluated = eval.eval(program, e)
+                        if evaluated is not None:
+                            print("[Output] " + evaluated.inspect + "\n", file=rout)
+                    elif mode == "vm":
+                        comp = compiler.Compiler()
+                        try:
+                            comp.compile(program)
+                        except RuntimeError as exx:
+                            log_error("Failed to Compile!", str(exx), rout)
 
-                    insts = comp.bytecode.instructions
-                    print(code.instructions_to_string(insts), file=rout)
+                        insts = comp.bytecode.instructions
+                        # print(code.instructions_to_string(insts), file=rout)
 
-                    machine = vm.VirtualMachine(comp.bytecode)
-                    try:
-                        machine.run()
-                    except NotImplementedError as exx:
-                        log_error("Failed to run Virtual Machine!", str(exx), rout)
+                        machine = vm.VirtualMachine(comp.bytecode)
+                        try:
+                            machine.run()
+                        except NotImplementedError as exx:
+                            log_error("Failed to run Virtual Machine!", str(exx), rout)
 
-                    if machine.last_popped:
-                        print(
-                            "[Last Popped]: " + machine.last_popped.inspect, file=rout
-                        )
-                        print("", file=rout)
+                        if machine.last_popped:
+                            print(
+                                "[Output]: " + machine.last_popped.inspect + "\n",
+                                file=rout,
+                            )
+                    else:
+                        print(f"unsupported mode: {mode}", file=rout)
 
             print(PROMPT, end="", flush=True, file=rout)
             user_input = rin.readline()

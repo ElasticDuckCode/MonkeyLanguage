@@ -1,10 +1,10 @@
-from .token import token
-from .lexer import lexer
 from .ast import ast
-from .parser import parser
-from .obj import obj, env
-from .eval import eval, builtin
-from .repl import repl
 from .code import code
-from .compiler import compiler
+from .compiler import compiler, symbols
+from .eval import builtin, eval
+from .lexer import lexer
+from .obj import env, obj
+from .parser import parser
+from .repl import repl
+from .token import token
 from .vm import vm

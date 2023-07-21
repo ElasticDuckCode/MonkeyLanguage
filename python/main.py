@@ -1,5 +1,5 @@
-import os
 import argparse
+import os
 
 from src.monkey import repl
 
@@ -34,9 +34,15 @@ ICON = r"""
 
 
 def main():
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', nargs='?')
+    parser.add_argument("file", nargs="?")
+    parser.add_argument(
+        "-m",
+        "--mode",
+        choices=["interp", "vm"],
+        default="interp",
+        help="Run interpreter 'interp', or virtual machine 'vm'",
+    )
     args = parser.parse_args()
 
     if args.file is None:
@@ -44,7 +50,10 @@ def main():
         print(ICON)
         print(f"Hello {user}! This is the Monkey programming language!")
         print("Feel free to type in commands.")
-        repl.start()
+        if args.mode != "interp":
+            repl.start(mode=args.mode)
+        else:
+            repl.start()
     else:
         with open(args.file, "r") as f:
             repl.start(rin=f)

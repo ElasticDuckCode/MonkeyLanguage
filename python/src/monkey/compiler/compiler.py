@@ -4,6 +4,7 @@ from pprint import pformat
 from ..ast import ast
 from ..code import code
 from ..obj import obj
+from . import symbols
 
 
 @dataclass
@@ -34,12 +35,17 @@ class Compiler:
         }
         self.last_inst: EmittedInstruction | None = None
         self.prev_inst: EmittedInstruction | None = None
+        self.sym_table: symbols.Table = symbols.Table()
 
     def compile(self, node: ast.Node) -> None:
         match node:
             case ast.Program():
                 for stmt in node.statements:
                     self.compile(stmt)
+            case ast.LetStatement():
+                self.compile(node.value)
+                sym = self.sym_table.define(node.name.value)
+                self.emit(code.OpCode.SetGlobal, sym.index)
             case ast.ExpressionStatement():
                 self.compile(node.expression)
                 self.emit(code.OpCode.Pop)
@@ -68,6 +74,12 @@ class Compiler:
                 self.emit(code.OpCode.PFalse)
             case ast.Identifier(value="null"):
                 self.emit(code.OpCode.PNull)
+            case ast.Identifier():
+                if node.value in self.sym_table.store.keys():
+                    sym = self.sym_table.resolve(node.value)
+                    self.emit(code.OpCode.GetGlobal, sym.index)
+                else:
+                    raise RuntimeError(f"Unable to resolve identifier: {node.value}")
             case ast.BlockStatement():
                 for s in node.statements:
                     self.compile(s)
