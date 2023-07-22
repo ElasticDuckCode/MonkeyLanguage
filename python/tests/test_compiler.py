@@ -32,6 +32,8 @@ class TestCompiler(TestCase):
                         self.assertIsInstance(bytecode.constants[i], obj.Boolean)
                     case int():
                         self.assertIsInstance(bytecode.constants[i], obj.Integer)
+                    case str():
+                        self.assertIsInstance(bytecode.constants[i], obj.String)
                     case _:
                         self.fail("Unknown object type. Please create new assert...")
                 self.assertEqual(bytecode.constants[i].value, expected)
@@ -235,6 +237,29 @@ class TestCompiler(TestCase):
                 code.make(code.OpCode.GetGlobal, 0),
                 code.make(code.OpCode.SetGlobal, 1),
                 code.make(code.OpCode.GetGlobal, 1),
+                code.make(code.OpCode.Pop),
+            ),
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)
+
+    def test_compiler_string_expresssions(self):
+        test_code_list = ['"monkey"', '"mon" + "key"']
+        expected_const_list = [
+            ["monkey"],
+            ["mon", "key"],
+        ]
+        insts_list = [
+            (
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Pop),
+            ),
+            (
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Add),
                 code.make(code.OpCode.Pop),
             ),
         ]

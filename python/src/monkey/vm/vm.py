@@ -65,11 +65,14 @@ class VirtualMachine:
                 case code.OpCode.Add:
                     right = self.pop()
                     left = self.pop()
-                    if hasattr(left, "value") and hasattr(right, "value"):
-                        result = left.value + right.value
+                    if isinstance(left, obj.Integer) and isinstance(right, obj.Integer):
+                        int_result = left.value + right.value
+                        self.push(obj.Integer(int_result))
+                    elif isinstance(left, obj.String) and isinstance(right, obj.String):
+                        str_result: str = left.value + right.value
+                        self.push(obj.String(str_result))
                     else:
-                        result = obj.NULL
-                    self.push(obj.Integer(result))
+                        self.push(obj.NULL)
                 case code.OpCode.Sub:
                     right = self.pop()
                     left = self.pop()

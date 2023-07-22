@@ -79,6 +79,10 @@ class Compiler:
                 integer = obj.Integer(node.value)
                 ident = self.add_constant(integer)
                 self.emit(code.OpCode.PConstant, ident)
+            case ast.StringLiteral():
+                string = obj.String(node.value)
+                ident = self.add_constant(string)
+                self.emit(code.OpCode.PConstant, ident)
             case ast.Boolean(value=True):
                 self.emit(code.OpCode.PTrue)
             case ast.Boolean(value=False):

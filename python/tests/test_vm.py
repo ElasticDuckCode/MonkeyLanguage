@@ -30,6 +30,10 @@ class TestVirtualMachine(TestCase):
                 self.assertIsInstance(actual, obj.Integer)
                 actual = cast(obj.Integer, actual)
                 self.assertEqual(expected, actual.value)
+            case str():
+                self.assertIsInstance(actual, obj.String)
+                actual = cast(obj.String, actual)
+                self.assertEqual(expected, actual.value)
             case None:
                 self.assertIsInstance(actual, obj.Null)
                 self.assertEqual(expected, None)
@@ -112,6 +116,15 @@ class TestVirtualMachine(TestCase):
             ("let one = 1; one;", 1),
             ("let one = 1; let two = 2; one + two;", 3),
             ("let one = 1; let two = one + one; one + two;", 3),
+        )
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
+
+    def test_vm_string_literals(self):
+        tests = (
+            ('"monkey"', "monkey"),
+            ('"mon" + "key"', "monkey"),
+            ('"mon" + "key" + "banana"', "monkeybanana"),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
