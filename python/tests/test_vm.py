@@ -34,10 +34,16 @@ class TestVirtualMachine(TestCase):
                 self.assertIsInstance(actual, obj.String)
                 actual = cast(obj.String, actual)
                 self.assertEqual(expected, actual.value)
+            case list():
+                self.assertIsInstance(actual, obj.Array)
+                actual = cast(obj.Array, actual)
+                for e, a in zip(expected, actual.elements):
+                    self.verify_expected_object(e, a)
             case None:
                 self.assertIsInstance(actual, obj.Null)
                 self.assertEqual(expected, None)
             case _:
+                print(expected, actual, flush=True)
                 self.assertEqual(True, False)
 
     def test_vm_integer_arithmetic(self):
@@ -125,6 +131,15 @@ class TestVirtualMachine(TestCase):
             ('"monkey"', "monkey"),
             ('"mon" + "key"', "monkey"),
             ('"mon" + "key" + "banana"', "monkeybanana"),
+        )
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
+
+    def test_vm_array_literals(self):
+        tests = (
+            ("[]", []),
+            ("[1, 2, 3]", [1, 2, 3]),
+            ("[1 + 2, 3 * 4, 5 + 6]", [3, 12, 11]),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)

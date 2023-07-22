@@ -83,6 +83,16 @@ class Compiler:
                 string = obj.String(node.value)
                 ident = self.add_constant(string)
                 self.emit(code.OpCode.PConstant, ident)
+            case ast.ArrayLiteral():
+                elems = node.elements
+                if elems:
+                    n_elems = len(elems)
+                    for elem in elems:
+                        self.compile(elem)
+                else:
+                    n_elems = 0
+                self.emit(code.OpCode.PArray, n_elems)
+                pass
             case ast.Boolean(value=True):
                 self.emit(code.OpCode.PTrue)
             case ast.Boolean(value=False):

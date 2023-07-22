@@ -52,6 +52,11 @@ class VirtualMachine:
         self.sp -= 1
         return o
 
+    def pop_array(self, n_elems: int) -> list[obj.Object]:
+        array = self.stack[self.sp - n_elems : self.sp].copy()
+        self.sp -= n_elems
+        return array
+
     def run(self) -> None:
         ip = 0
         while ip < len(self.instructions):
@@ -163,5 +168,10 @@ class VirtualMachine:
                     global_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
                     ip += 2
                     self.push(self.globals[global_idx])
+                case code.OpCode.PArray:
+                    n_elems = int.from_bytes(self.instructions[ip : ip + 2], "big")
+                    ip += 2
+                    array = self.pop_array(n_elems)
+                    self.push(obj.Array(array))
                 case _:
                     raise NotImplementedError("OpCode not yet supported")

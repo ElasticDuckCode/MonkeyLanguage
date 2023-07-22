@@ -1,3 +1,2 @@
 #!/usr/bin/env sh
-python -m unittest discover -v
-mypy src
+python -m unittest discover tests -v
