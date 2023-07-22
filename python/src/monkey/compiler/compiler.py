@@ -92,7 +92,14 @@ class Compiler:
                 else:
                     n_elems = 0
                 self.emit(code.OpCode.PArray, n_elems)
-                pass
+            case ast.HashLiteral():
+                pairs = node.pairs
+                n_pairs = len(pairs.keys())
+                for key, val in pairs.items():
+                    if key and val:
+                        self.compile(key)
+                        self.compile(val)
+                self.emit(code.OpCode.PHash, 2 * n_pairs)
             case ast.Boolean(value=True):
                 self.emit(code.OpCode.PTrue)
             case ast.Boolean(value=False):

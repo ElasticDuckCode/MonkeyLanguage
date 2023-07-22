@@ -39,6 +39,14 @@ class TestVirtualMachine(TestCase):
                 actual = cast(obj.Array, actual)
                 for e, a in zip(expected, actual.elements):
                     self.verify_expected_object(e, a)
+            case dict():
+                self.assertIsInstance(actual, obj.Hash)
+                actual = cast(obj.Hash, actual)
+                for e, a in zip(expected.keys(), actual.pairs.keys()):
+                    self.verify_expected_object(e, a)
+                for e, a in zip(expected.values(), actual.pairs.values()):
+                    self.verify_expected_object(e, a)
+
             case None:
                 self.assertIsInstance(actual, obj.Null)
                 self.assertEqual(expected, None)
@@ -140,6 +148,15 @@ class TestVirtualMachine(TestCase):
             ("[]", []),
             ("[1, 2, 3]", [1, 2, 3]),
             ("[1 + 2, 3 * 4, 5 + 6]", [3, 12, 11]),
+        )
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
+
+    def test_vm_hash_literals(self):
+        tests = (
+            ("{}", {}),
+            ("{1: 2, 3: 4, 5: 6}", {1: 2, 3: 4, 5: 6}),
+            ("{1: 2 + 3, 4: 5 * 6}", {1: 2 + 3, 4: 5 * 6}),
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)

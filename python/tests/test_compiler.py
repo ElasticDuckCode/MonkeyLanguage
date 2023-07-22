@@ -305,3 +305,47 @@ class TestCompiler(TestCase):
             test_code_list, expected_const_list, insts_list
         ):
             self.verify_compiler(test_code, expected_const, insts)
+
+    def test_compiler_hash_literals(self):
+        test_code_list = [
+            "{}",
+            "{1: 2, 3: 4, 5: 6}",
+            "{1: 2 + 3, 4: 5 * 6}",
+        ]
+        expected_const_list = [
+            [],
+            [1, 2, 3, 4, 5, 6],
+            [1, 2, 3, 4, 5, 6],
+        ]
+        insts_list = [
+            [
+                code.make(code.OpCode.PHash, 0),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.PConstant, 3),
+                code.make(code.OpCode.PConstant, 4),
+                code.make(code.OpCode.PConstant, 5),
+                code.make(code.OpCode.PHash, 6),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Add),
+                code.make(code.OpCode.PConstant, 3),
+                code.make(code.OpCode.PConstant, 4),
+                code.make(code.OpCode.PConstant, 5),
+                code.make(code.OpCode.Mul),
+                code.make(code.OpCode.PHash, 4),
+                code.make(code.OpCode.Pop),
+            ],
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)

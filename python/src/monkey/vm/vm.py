@@ -57,6 +57,12 @@ class VirtualMachine:
         self.sp -= n_elems
         return array
 
+    def pop_hash(self, n_keyval: int) -> dict[obj.Object, obj.Object]:
+        keyvals = self.stack[self.sp - n_keyval : self.sp].copy()
+        self.sp -= n_keyval
+        hash = dict(map(lambda k, v: (k, v), keyvals[::2], keyvals[1::2]))
+        return hash
+
     def run(self) -> None:
         ip = 0
         while ip < len(self.instructions):
@@ -173,5 +179,10 @@ class VirtualMachine:
                     ip += 2
                     array = self.pop_array(n_elems)
                     self.push(obj.Array(array))
+                case code.OpCode.PHash:
+                    n_keyval = int.from_bytes(self.instructions[ip : ip + 2], "big")
+                    ip += 2
+                    hash = self.pop_hash(n_keyval)
+                    self.push(obj.Hash(hash))
                 case _:
                     raise NotImplementedError("OpCode not yet supported")

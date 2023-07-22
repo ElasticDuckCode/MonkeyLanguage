@@ -22,6 +22,7 @@ class OpCode(Enum):
     SetGlobal = b"\x11"
     GetGlobal = b"\x12"
     PArray = b"\x13"
+    PHash = b"\x14"
 
 
 @dataclass
@@ -50,6 +51,7 @@ OpDefs: dict[OpCode, Definition] = {
     OpCode.GetGlobal: Definition(OpCode.GetGlobal.name, [2]),
     OpCode.SetGlobal: Definition(OpCode.SetGlobal.name, [2]),
     OpCode.PArray: Definition(OpCode.PArray.name, [2]),
+    OpCode.PHash: Definition(OpCode.PHash.name, [2]),
 }
 
 
