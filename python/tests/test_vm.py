@@ -160,3 +160,19 @@ class TestVirtualMachine(TestCase):
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
+
+    def test_vm_index_expressions(self):
+        tests = (
+            ("[1, 2, 3][1]", 2),
+            ("[1, 2, 3][0 + 2]", 3),
+            ("[[1, 2, 3]][0][0]", 1),
+            ("[][0]", None),
+            ("[1, 2, 3][999]", None),
+            ("[1, 2][-1]", 2),
+            ("{1: 1, 2: 2}[1]", 1),
+            ("{1: 1, 2: 2}[2]", 2),
+            ("{1: 1}[0]", None),
+            ("{}[0]", None),
+        )
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)

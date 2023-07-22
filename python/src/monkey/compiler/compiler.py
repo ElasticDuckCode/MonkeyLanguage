@@ -100,6 +100,11 @@ class Compiler:
                         self.compile(key)
                         self.compile(val)
                 self.emit(code.OpCode.PHash, 2 * n_pairs)
+            case ast.IndexExpression():
+                if node.left and node.index:
+                    self.compile(node.left)
+                    self.compile(node.index)
+                self.emit(code.OpCode.Index)
             case ast.Boolean(value=True):
                 self.emit(code.OpCode.PTrue)
             case ast.Boolean(value=False):

@@ -349,3 +349,40 @@ class TestCompiler(TestCase):
             test_code_list, expected_const_list, insts_list
         ):
             self.verify_compiler(test_code, expected_const, insts)
+
+    def test_compiler_index_expressions(self):
+        test_code_list = [
+            "[1, 2, 3][1 + 1]",
+            "{1: 2}[2 - 1]",
+        ]
+        expected_const_list = [
+            [1, 2, 3, 1, 1],
+            [1, 2, 2, 1],
+        ]
+        insts_list = [
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.PArray, 3),
+                code.make(code.OpCode.PConstant, 3),
+                code.make(code.OpCode.PConstant, 4),
+                code.make(code.OpCode.Add),
+                code.make(code.OpCode.Index),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.PHash, 2),
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.PConstant, 3),
+                code.make(code.OpCode.Sub),
+                code.make(code.OpCode.Index),
+                code.make(code.OpCode.Pop),
+            ],
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)

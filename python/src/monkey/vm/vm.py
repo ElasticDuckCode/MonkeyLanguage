@@ -184,5 +184,24 @@ class VirtualMachine:
                     ip += 2
                     hash = self.pop_hash(n_keyval)
                     self.push(obj.Hash(hash))
+                case code.OpCode.Index:
+                    index = self.pop()
+                    left = self.pop()
+                    if isinstance(left, obj.Array) and isinstance(index, obj.Integer):
+                        idx = index.value
+                        arr = left.elements
+                        if (idx < -len(arr)) or (idx >= len(arr)):
+                            self.push(obj.NULL)
+                        else:
+                            self.push(arr[idx % len(arr)])
+                    elif isinstance(left, obj.Hash):
+                        key = index
+                        hash = left.pairs
+                        if key not in hash.keys():
+                            self.push(obj.NULL)
+                        else:
+                            self.push(hash[key])
+                    else:
+                        self.push(obj.NULL)
                 case _:
                     raise NotImplementedError("OpCode not yet supported")
