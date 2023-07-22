@@ -3,10 +3,10 @@ import sys
 from typing import Final, TextIO
 
 from ..code import code
-from ..compiler import compiler
+from ..compiler import compiler, symbols
 from ..eval import eval
 from ..lexer import lexer
-from ..obj import env
+from ..obj import env, obj
 from ..parser import parser
 from ..vm import vm
 
@@ -25,6 +25,10 @@ def start(
     rin: TextIO = sys.stdin, mode: str = "interp", rout: TextIO = sys.stdout
 ) -> None:
     e = env.Environment()
+    table = symbols.Table()
+    constants: list[obj.Object] = []
+    globals: list[obj.Object] = vm.build_new_globals()
+
     if rin == sys.stdin:
         print(PROMPT, end="", flush=True, file=rout)
         user_input = rin.readline()
@@ -47,16 +51,16 @@ def start(
                         if evaluated is not None:
                             print("[Output] " + evaluated.inspect + "\n", file=rout)
                     elif mode == "vm":
-                        comp = compiler.Compiler()
+                        comp = compiler.Compiler(constants, table)
                         try:
                             comp.compile(program)
                         except RuntimeError as exx:
                             log_error("Failed to Compile!", str(exx), rout)
 
-                        insts = comp.bytecode.instructions
+                        # insts = comp.bytecode.instructions
                         # print(code.instructions_to_string(insts), file=rout)
 
-                        machine = vm.VirtualMachine(comp.bytecode)
+                        machine = vm.VirtualMachine(comp.bytecode, globals)
                         try:
                             machine.run()
                         except NotImplementedError as exx:

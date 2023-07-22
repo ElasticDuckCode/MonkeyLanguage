@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pprint import pformat
+from typing import Optional
 
 from ..ast import ast
 from ..code import code
@@ -20,9 +21,16 @@ class EmittedInstruction:
 
 
 class Compiler:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        constants: Optional[list[obj.Object]] = None,
+        table: Optional[symbols.Table] = None,
+    ) -> None:
         self.instructions: bytearray = bytearray(0)
-        self.constants: list[obj.Object] = []
+        if constants is not None:
+            self.constants: list[obj.Object] = constants
+        else:
+            self.constants = []
         self.op_dict: dict[str, code.OpCode] = {
             "+": code.OpCode.Add,
             "-": code.OpCode.Sub,
@@ -35,7 +43,10 @@ class Compiler:
         }
         self.last_inst: EmittedInstruction | None = None
         self.prev_inst: EmittedInstruction | None = None
-        self.sym_table: symbols.Table = symbols.Table()
+        if table is not None:
+            self.sym_table: symbols.Table = table
+        else:
+            self.sym_table = symbols.Table()
 
     def compile(self, node: ast.Node) -> None:
         match node:

@@ -40,7 +40,7 @@ def main():
         "-m",
         "--mode",
         choices=["interp", "vm"],
-        default="interp",
+        default="vm",
         help="Run interpreter 'interp', or virtual machine 'vm'",
     )
     args = parser.parse_args()

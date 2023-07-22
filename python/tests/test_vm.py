@@ -106,3 +106,12 @@ class TestVirtualMachine(TestCase):
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
+
+    def test_vm_let_statements(self):
+        tests = (
+            ("let one = 1; one;", 1),
+            ("let one = 1; let two = 2; one + two;", 3),
+            ("let one = 1; let two = one + one; one + two;", 3),
+        )
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)

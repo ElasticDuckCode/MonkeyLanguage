@@ -1,18 +1,32 @@
-from typing import Final, cast
+from typing import Final
 
 from ..code import code
 from ..compiler import compiler
 from ..obj import obj
 
 STACK_SIZE: Final[int] = 2048
+GLOBAL_SIZE: Final[int] = 2**16
+
+
+def build_new_globals() -> list[obj.Object]:
+    return [obj.NULL] * GLOBAL_SIZE
+
+
+def build_new_stack() -> list[obj.Object]:
+    return [obj.NULL] * STACK_SIZE
 
 
 class VirtualMachine:
-    def __init__(self, bytecode: compiler.Bytecode) -> None:
+    def __init__(
+        self,
+        bytecode: compiler.Bytecode,
+        globals: list[obj.Object] = build_new_globals(),
+    ) -> None:
+        self.sp: int = 0
         self.instructions: bytes = bytecode.instructions
         self.constants: list[obj.Object] = bytecode.constants
-        self.stack: list[obj.Object] = [obj.NULL] * STACK_SIZE
-        self.sp: int = 0
+        self.globals: list[obj.Object] = globals
+        self.stack: list[obj.Object] = build_new_stack()
 
     @property
     def stack_top(self) -> obj.Object | None:
@@ -137,5 +151,14 @@ class VirtualMachine:
                         ip = const_idx
                 case code.OpCode.PNull:
                     self.push(obj.NULL)
+                case code.OpCode.SetGlobal:
+                    global_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
+                    ip += 2
+                    value = self.pop()
+                    self.globals[global_idx] = value
+                case code.OpCode.GetGlobal:
+                    global_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
+                    ip += 2
+                    self.push(self.globals[global_idx])
                 case _:
                     raise NotImplementedError("OpCode not yet supported")
