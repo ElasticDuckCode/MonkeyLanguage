@@ -83,6 +83,16 @@ class Compiler:
     def prev_inst(self, inst: EmittedInstruction | None) -> None:
         self.scopes[self.scope_ptr].prev_inst = inst
 
+    def enter_scope(self) -> None:
+        cs = CompilationScope(bytearray(0))
+        self.scopes.append(cs)
+        self.scope_ptr += 1
+
+    def leave_scope(self) -> bytearray:
+        scope = self.scopes.pop()
+        self.scope_ptr -= 1
+        return scope.instructions
+
     def compile(self, node: ast.Node) -> None:
         match node:
             case ast.Program():
@@ -140,8 +150,6 @@ class Compiler:
                     self.compile(node.left)
                     self.compile(node.index)
                 self.emit(code.OpCode.Index)
-            case ast.FunctionLiteral():
-                raise NotImplementedError()
             case ast.Boolean(value=True):
                 self.emit(code.OpCode.PTrue)
             case ast.Boolean(value=False):
@@ -182,6 +190,18 @@ class Compiler:
                             " Conditional missing condition or consequence."
                         )
                     )
+            case ast.FunctionLiteral():
+                self.enter_scope()
+                if node.body:
+                    self.compile(node.body)
+                else:
+                    self.emit(code.OpCode.PNull)
+                insts = self.leave_scope()
+                fn = obj.CompiledFunction(insts)
+                self.emit(code.OpCode.PConstant, self.add_constant(fn))
+            case ast.ReturnStatement():
+                self.compile(node.value)
+                self.emit(code.OpCode.ReturnValue)
             case _:
                 raise RuntimeError(f"failed to compile node:\n{pformat(node)}")
         return None
