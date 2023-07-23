@@ -176,3 +176,52 @@ class TestVirtualMachine(TestCase):
         )
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
+
+    def test_vm_function_calls(self):
+        tests = [
+            [
+                "let fivePlusTen = fn() { 5 + 10; }; fivePlusTen()",
+                15,
+            ],
+            [
+                """
+                let one = fn() { 1; }
+                let two = fn() { 2; }
+                one() + two()
+                """,
+                3,
+            ],
+            [
+                """
+                let a = fn() { 1 };
+                let b = fn() { a() + 1 };
+                let c = fn() { b() + 1 };
+                c();
+                """,
+                3,
+            ],
+            [
+                """
+                let earlyExit = fn() { return 99; 100; };
+                earlyExit()
+                """,
+                99,
+            ],
+            [
+                """
+                let noVal = fn() { return; };
+                noVal()
+                """,
+                None,
+            ],
+            [
+                """
+                let returnsOne = fn() { return 1; };
+                let returnsOneRunner = fn() { return returnsOne;};
+                returnsOneRunner()();
+                """,
+                1,
+            ],
+        ]
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)

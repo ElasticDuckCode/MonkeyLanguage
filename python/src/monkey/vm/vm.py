@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Final, cast
 
 from ..code import code
 from ..compiler import compiler
@@ -51,8 +51,9 @@ class VirtualMachine:
         self.fp += 1
 
     def pop_frame(self) -> frame.Frame:
+        f = self.frames[self.fp - 1]
         self.fp -= 1
-        return self.frames[self.fp]
+        return f
 
     @property
     def instructions(self):
@@ -102,7 +103,6 @@ class VirtualMachine:
         return hash
 
     def run(self) -> None:
-        self.ip += 1
         while self.ip < len(self.instructions):
             op = code.OpCode(self.instructions[self.ip].to_bytes(1, "big"))
             self.ip += 1
@@ -255,5 +255,18 @@ class VirtualMachine:
                             self.push(hash[key])
                     else:
                         self.push(obj.NULL)
+                case code.OpCode.Call:
+                    fn = cast(obj.CompiledFunction, self.stack[self.sp - 1])
+                    f = frame.Frame(fn)
+                    self.push_frame(f)
+                case code.OpCode.ReturnValue:
+                    value = self.pop()
+                    self.pop_frame()
+                    self.pop()
+                    self.push(value)
+                case code.OpCode.Return:
+                    self.pop_frame()
+                    self.pop()
+                    self.push(obj.NULL)
                 case _:
-                    raise NotImplementedError("OpCode not yet supported")
+                    raise NotImplementedError(f"OpCode not yet supported {op}")
