@@ -395,7 +395,12 @@ class TestCompiler(TestCase):
             self.verify_compiler(test_code, expected_const, insts)
 
     def test_compiler_functions(self):
-        test_code_list = ["fn() { return 5 + 10 }"]
+        test_code_list = [
+            "fn() { return 5 + 10 }",
+            "fn() { 5 + 10 }",
+            "fn() { 1; 2; }",
+            "fn() { }",
+        ]
         expected_const_list = [
             [
                 5,
@@ -405,10 +410,41 @@ class TestCompiler(TestCase):
                 + code.make(code.OpCode.Add)
                 + code.make(code.OpCode.ReturnValue),
             ],
+            [
+                5,
+                10,
+                code.make(code.OpCode.PConstant, 0)
+                + code.make(code.OpCode.PConstant, 1)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+            [
+                1,
+                2,
+                code.make(code.OpCode.PConstant, 0)
+                + code.make(code.OpCode.Pop)
+                + code.make(code.OpCode.PConstant, 1)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+            [
+                code.make(code.OpCode.Return),
+            ],
         ]
         insts_list = [
             [
                 code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
                 code.make(code.OpCode.Pop),
             ],
         ]

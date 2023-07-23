@@ -192,10 +192,13 @@ class Compiler:
                     )
             case ast.FunctionLiteral():
                 self.enter_scope()
-                if node.body:
+                if node.body and len(node.body.statements) > 0:
                     self.compile(node.body)
                 else:
-                    self.emit(code.OpCode.PNull)
+                    self.emit(code.OpCode.Return)  # empty body same as return
+                if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
+                    self.remove_last_instruction()  # implict returns
+                    self.emit(code.OpCode.ReturnValue)
                 insts = self.leave_scope()
                 fn = obj.CompiledFunction(insts)
                 self.emit(code.OpCode.PConstant, self.add_constant(fn))

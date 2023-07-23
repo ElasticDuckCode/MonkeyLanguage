@@ -26,7 +26,7 @@ class OpCode(Enum):
     Index = b"\x15"
     Call = b"\x16"
     ReturnValue = b"\x17"
-    Return = "b\x18"
+    Return = b"\x18"
 
 
 @dataclass
