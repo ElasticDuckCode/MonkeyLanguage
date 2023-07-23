@@ -24,6 +24,9 @@ class OpCode(Enum):
     PArray = b"\x13"
     PHash = b"\x14"
     Index = b"\x15"
+    Call = b"\x16"
+    ReturnValue = b"\x17"
+    Return = "b\x18"
 
 
 @dataclass
@@ -54,6 +57,9 @@ OpDefs: dict[OpCode, Definition] = {
     OpCode.PArray: Definition(OpCode.PArray.name, [2]),
     OpCode.PHash: Definition(OpCode.PHash.name, [2]),
     OpCode.Index: Definition(OpCode.Index.name, []),
+    OpCode.Call: Definition(OpCode.Call.name, []),
+    OpCode.ReturnValue: Definition(OpCode.ReturnValue.name, []),
+    OpCode.Return: Definition(OpCode.Return.name, []),
 }
 
 

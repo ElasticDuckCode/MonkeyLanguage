@@ -30,13 +30,20 @@ class TestCompiler(TestCase):
                 match expected:
                     case bool():
                         self.assertIsInstance(bytecode.constants[i], obj.Boolean)
+                        self.assertEqual(bytecode.constants[i].value, expected)
                     case int():
                         self.assertIsInstance(bytecode.constants[i], obj.Integer)
+                        self.assertEqual(bytecode.constants[i].value, expected)
                     case str():
                         self.assertIsInstance(bytecode.constants[i], obj.String)
+                        self.assertEqual(bytecode.constants[i].value, expected)
+                    case bytearray():
+                        self.assertIsInstance(
+                            bytecode.constants[i], obj.CompiledFunction
+                        )
+                        self.assertEqual(bytecode.constants[i].instructions, expected)
                     case _:
                         self.fail("Unknown object type. Please create new assert...")
-                self.assertEqual(bytecode.constants[i].value, expected)
 
     def test_compiler_integer_arithmetic(self):
         test_code_list = [
@@ -386,3 +393,59 @@ class TestCompiler(TestCase):
             test_code_list, expected_const_list, insts_list
         ):
             self.verify_compiler(test_code, expected_const, insts)
+
+    def test_compiler_functions(self):
+        test_code_list = ["fn() { return 5 + 10 }"]
+        expected_const_list = [
+            [
+                5,
+                10,
+                code.make(code.OpCode.PConstant, 0)
+                + code.make(code.OpCode.PConstant, 1)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+        ]
+        insts_list = [
+            [
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Pop),
+            ],
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)
+
+    def test_compiler_function_scopes(self):
+        c = compiler.Compiler()
+
+        self.assertEqual(c.scope_ptr, 0)
+
+        c.emit(code.OpCode.Mul)
+        c.enter_scope()  # TODO
+        self.assertEqual(c.scope_ptr, 1)
+
+        c.emit(code.OpCode.Sub)
+        self.assertEqual(len(c.scopes[c.scope_ptr].instructions), 1)
+        last = c.scopes[c.scope_ptr].last_inst
+        self.assertEqual(last.opcode, code.OpCode.Sub)
+
+        c.leave_scope()  # TODO
+        self.assertEqual(c.scope_ptr, 0)
+
+        c.emit(code.OpCode.Add)
+        self.assertEqual(len(c.scopes[c.scope_ptr].instructions), 2)
+        last = c.scopes[c.scope_ptr].last_inst
+        self.assertEqual(last.opcode, code.OpCode.Add)
+        prev = c.scopes[c.scope_ptr].prev_inst
+        self.assertEqual(prev.opcode, code.OpCode.Mul)
+
+    # def test_compiler_template(self):
+    #     test_code_list = []
+    #     expected_const_list = []
+    #     insts_list = []
+    #     for test_code, expected_const, insts in zip(
+    #         test_code_list, expected_const_list, insts_list
+    #     ):
+    #         self.verify_compiler(test_code, expected_const, insts)

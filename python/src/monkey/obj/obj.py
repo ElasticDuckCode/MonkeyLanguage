@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable, Dict, Final, List, NewType, Tuple
 
 from ..ast import ast
+from ..code import code
 
 ObjectType = NewType("ObjectType", str)
 
@@ -17,6 +18,7 @@ FUNCTION_OBJ: Final[ObjectType] = ObjectType("FUNCTION")
 BUILTIN_OBJ: Final[ObjectType] = ObjectType("BUILTIN")
 ARRAY_OBJ: Final[ObjectType] = ObjectType("ARRAY")
 HASH_OBJ: Final[ObjectType] = ObjectType("HASH")
+COMPILED_FUNCTION_OBJ: Final[ObjectType] = ObjectType("COMPILED_FUNCTION")
 
 
 @dataclass(eq=True, frozen=True)
@@ -131,6 +133,19 @@ class Function(Object):
         string += ",".join([p.string for p in self.parameters]) + "\n"
         string += self.body.string + "\n"
         return string
+
+
+@dataclass(eq=True, frozen=True)
+class CompiledFunction(Object):
+    instructions: bytearray
+
+    @property
+    def otype(self) -> ObjectType:
+        return COMPILED_FUNCTION_OBJ
+
+    @property
+    def inspect(self) -> str:
+        return f"compiled_function[{self.instructions}]"
 
 
 @dataclass(eq=True, frozen=True)

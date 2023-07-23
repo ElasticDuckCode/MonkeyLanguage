@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pprint import pformat
 from typing import Optional
 
@@ -20,13 +20,19 @@ class EmittedInstruction:
     position: int
 
 
+@dataclass
+class CompilationScope:
+    instructions: bytearray = field(default_factory=bytearray)
+    last_inst: EmittedInstruction | None = None
+    prev_inst: EmittedInstruction | None = None
+
+
 class Compiler:
     def __init__(
         self,
         constants: Optional[list[obj.Object]] = None,
         table: Optional[symbols.Table] = None,
     ) -> None:
-        self.instructions: bytearray = bytearray(0)
         if constants is not None:
             self.constants: list[obj.Object] = constants
         else:
@@ -41,12 +47,41 @@ class Compiler:
             ">": code.OpCode.GreaterThan,
             "<": code.OpCode.GreaterThan,
         }
-        self.last_inst: EmittedInstruction | None = None
-        self.prev_inst: EmittedInstruction | None = None
         if table is not None:
             self.sym_table: symbols.Table = table
         else:
             self.sym_table = symbols.Table()
+
+        # self.instructions: bytearray = bytearray(0)
+        # self.last_inst: EmittedInstruction | None = None
+        # self.prev_inst: EmittedInstruction | None = None
+        self.main_scope = CompilationScope(bytearray(0))
+        self.scopes: list[CompilationScope] = [self.main_scope]
+        self.scope_ptr: int = 0
+
+    @property
+    def instructions(self) -> bytearray:
+        return self.scopes[self.scope_ptr].instructions
+
+    @instructions.setter
+    def instructions(self, insts: bytearray) -> None:
+        self.scopes[self.scope_ptr].instructions = insts
+
+    @property
+    def last_inst(self) -> EmittedInstruction | None:
+        return self.scopes[self.scope_ptr].last_inst
+
+    @last_inst.setter
+    def last_inst(self, inst: EmittedInstruction | None) -> None:
+        self.scopes[self.scope_ptr].last_inst = inst
+
+    @property
+    def prev_inst(self) -> EmittedInstruction | None:
+        return self.scopes[self.scope_ptr].prev_inst
+
+    @prev_inst.setter
+    def prev_inst(self, inst: EmittedInstruction | None) -> None:
+        self.scopes[self.scope_ptr].prev_inst = inst
 
     def compile(self, node: ast.Node) -> None:
         match node:
@@ -105,6 +140,8 @@ class Compiler:
                     self.compile(node.left)
                     self.compile(node.index)
                 self.emit(code.OpCode.Index)
+            case ast.FunctionLiteral():
+                raise NotImplementedError()
             case ast.Boolean(value=True):
                 self.emit(code.OpCode.PTrue)
             case ast.Boolean(value=False):
