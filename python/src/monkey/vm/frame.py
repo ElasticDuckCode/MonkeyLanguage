@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from ..code import code
 from ..obj import obj
 
 
@@ -8,6 +7,7 @@ from ..obj import obj
 class Frame:
     fn: obj.CompiledFunction
     ip: int = 0
+    bp: int = 0
 
     @property
     def instructions(self):

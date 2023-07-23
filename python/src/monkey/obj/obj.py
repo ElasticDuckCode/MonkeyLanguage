@@ -138,6 +138,7 @@ class Function(Object):
 @dataclass(eq=True, frozen=True)
 class CompiledFunction(Object):
     instructions: bytearray
+    n_locals: int
 
     @property
     def otype(self) -> ObjectType:
@@ -145,7 +146,10 @@ class CompiledFunction(Object):
 
     @property
     def inspect(self) -> str:
-        return f"compiled_function[{self.instructions}]"
+        str_inst = code.instructions_to_string(self.instructions).replace(
+            "\n", "\n    "
+        )
+        return f"compiled_function[\n    {str_inst}\n]"
 
 
 @dataclass(eq=True, frozen=True)

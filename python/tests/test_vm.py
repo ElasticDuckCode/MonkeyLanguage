@@ -225,3 +225,64 @@ class TestVirtualMachine(TestCase):
         ]
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
+
+    def test_vm_function_calls_with_bindings(self):
+        tests = [
+            # [
+            #     """
+            #     let one = fn() { let one = 1; one };
+            #     one();
+            #     """,
+            #     1,
+            # ],
+            [
+                """
+                let oneAndTwo = fn() { let one = 1; let two = 2; one + two; };
+                oneAndTwo();
+                """,
+                3,
+            ],
+            [
+                """
+                let oneAndTwo = fn() { let one = 1; let two = 2; one + two; };
+                let threeAndFour = fn() { let three = 3; let four = 4; three + four; };
+                oneAndTwo() + threeAndFour();
+                """,
+                10,
+            ],
+            [
+                """
+                let firstFoobar = fn() { let foobar = 50; foobar; }
+                let secondFoobar = fn() { let foobar = 100; foobar; }
+                firstFoobar() + secondFoobar()
+                """,
+                150,
+            ],
+            [
+                """
+                let globalSeed = 50,
+                let minusOne = fn() {
+                    let num = 1;
+                    globalSeed - num;
+                }
+                let minusTwo = fn() {
+                    let num = 2;
+                    globalSeed - num;
+                }
+                minusOne() + minusTwo();
+                """,
+                97,
+            ],
+            [
+                """
+                let returnsOneRunner = fn() {
+                    let returnsOne = fn() { 1; };
+                    returnsOne;
+                }
+                returnsOneRunner()();
+                """,
+                1,
+            ],
+        ]
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)

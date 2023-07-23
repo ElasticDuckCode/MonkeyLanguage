@@ -205,8 +205,9 @@ class Compiler:
                 if self.last_inst and self.last_inst.opcode == code.OpCode.Pop:
                     self.remove_last_instruction()  # implict returns
                     self.emit(code.OpCode.ReturnValue)
+                n_locals = self.sym_table.n_def
                 insts = self.leave_scope()
-                fn = obj.CompiledFunction(insts)
+                fn = obj.CompiledFunction(insts, n_locals)
                 self.emit(code.OpCode.PConstant, self.add_constant(fn))
             case ast.ReturnStatement():
                 self.compile(node.value)
