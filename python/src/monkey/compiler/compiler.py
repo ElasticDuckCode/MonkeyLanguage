@@ -198,6 +198,10 @@ class Compiler:
                     )
             case ast.FunctionLiteral():
                 self.enter_scope()
+                params = node.parameters
+                if params:
+                    for param in params:
+                        self.sym_table.define(param.value)
                 if node.body and len(node.body.statements) > 0:
                     self.compile(node.body)
                 else:
@@ -206,8 +210,12 @@ class Compiler:
                     self.remove_last_instruction()  # implict returns
                     self.emit(code.OpCode.ReturnValue)
                 n_locals = self.sym_table.n_def
+                if params:
+                    n_params = len(params)
+                else:
+                    n_params = 0
                 insts = self.leave_scope()
-                fn = obj.CompiledFunction(insts, n_locals)
+                fn = obj.CompiledFunction(insts, n_locals, n_params)
                 self.emit(code.OpCode.PConstant, self.add_constant(fn))
             case ast.ReturnStatement():
                 self.compile(node.value)
@@ -217,7 +225,12 @@ class Compiler:
                     self.compile(node.function)
                 else:
                     self.emit(code.OpCode.PNull)
-                self.emit(code.OpCode.Call)
+                if node.arguements:
+                    for arg in node.arguements:
+                        self.compile(arg)
+                    self.emit(code.OpCode.Call, len(node.arguements))
+                else:
+                    self.emit(code.OpCode.Call, 0)
             case _:
                 raise RuntimeError(f"failed to compile node:\n{pformat(node)}")
         return None

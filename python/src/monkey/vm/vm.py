@@ -19,7 +19,7 @@ def build_new_stack() -> list[obj.Object]:
 
 
 def build_new_frames() -> list[frame.Frame]:
-    return [frame.Frame(obj.CompiledFunction(bytearray(0), 0))] * MAX_FRAMES
+    return [frame.Frame(obj.CompiledFunction(bytearray(0), 0, 0))] * MAX_FRAMES
 
 
 class VirtualMachine:
@@ -32,7 +32,7 @@ class VirtualMachine:
         self.sp: int = 0
 
         self.frames: list[frame.Frame] = build_new_frames()
-        mainFn = obj.CompiledFunction(bytecode.instructions, 0)
+        mainFn = obj.CompiledFunction(bytecode.instructions, 0, 0)
         mainFrame = frame.Frame(mainFn)
         self.frames[0] = mainFrame
         self.fp: int = 1
@@ -264,8 +264,14 @@ class VirtualMachine:
                     else:
                         self.push(obj.NULL)
                 case code.OpCode.Call:
-                    fn = cast(obj.CompiledFunction, self.stack[self.sp - 1])
-                    f = frame.Frame(fn, bp=self.sp)
+                    n_args = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 1], "big"
+                    )
+                    self.ip += 1
+                    fn = cast(obj.CompiledFunction, self.stack[self.sp - 1 - n_args])
+                    if n_args != fn.n_params:
+                        raise TypeError("incorrect number of args")
+                    f = frame.Frame(fn, bp=self.sp - n_args)
                     self.push_frame(f)
                     self.sp = f.bp + fn.n_locals
                 case code.OpCode.ReturnValue:

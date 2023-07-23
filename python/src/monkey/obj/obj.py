@@ -139,6 +139,7 @@ class Function(Object):
 class CompiledFunction(Object):
     instructions: bytearray
     n_locals: int
+    n_params: int
 
     @property
     def otype(self) -> ObjectType:

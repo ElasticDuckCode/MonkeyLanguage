@@ -463,6 +463,8 @@ class TestCompiler(TestCase):
         test_code_list = [
             "fn() { 24 }();",
             "let noArg = fn() { 24 }; noArg();",
+            "let oneArg = fn(a) { a; }; oneArg(24);",
+            "let manyArg = fn(a, b, c) { a; b; c; }; manyArg(24, 25, 26) ",
         ]
         expected_const_list = [
             [
@@ -475,18 +477,51 @@ class TestCompiler(TestCase):
                 code.make(code.OpCode.PConstant, 0)
                 + code.make(code.OpCode.ReturnValue),
             ],
+            [
+                code.make(code.OpCode.GetLocal, 0) + code.make(code.OpCode.ReturnValue),
+                24,
+            ],
+            [
+                code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Pop)
+                + code.make(code.OpCode.GetLocal, 1)
+                + code.make(code.OpCode.Pop)
+                + code.make(code.OpCode.GetLocal, 2)
+                + code.make(code.OpCode.ReturnValue),
+                24,
+                25,
+                26,
+            ],
         ]
         insts_list = [
             [
                 code.make(code.OpCode.PConstant, 1),
-                code.make(code.OpCode.Call),
+                code.make(code.OpCode.Call, 0),
                 code.make(code.OpCode.Pop),
             ],
             [
                 code.make(code.OpCode.PConstant, 1),
                 code.make(code.OpCode.SetGlobal, 0),
                 code.make(code.OpCode.GetGlobal, 0),
-                code.make(code.OpCode.Call),
+                code.make(code.OpCode.Call, 0),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.GetGlobal, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Call, 1),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.GetGlobal, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.PConstant, 3),
+                code.make(code.OpCode.Call, 3),
                 code.make(code.OpCode.Pop),
             ],
         ]

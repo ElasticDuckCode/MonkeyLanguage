@@ -286,3 +286,52 @@ class TestVirtualMachine(TestCase):
         ]
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)
+
+    def test_vm_function_calls_with_args_and_bindings(self):
+        tests = [
+            [
+                """
+                let identity = fn(a) { a; };
+                identity(4);
+                """,
+                4,
+            ],
+            [
+                """
+                let sum = fn(a, b) { a + b; };
+                sum(1, 2);
+                """,
+                3,
+            ],
+            [
+                """
+                let sum = fn(a, b) { let c = a + b; c };
+                sum(1, 2) + sum(3, 4);
+                """,
+                10,
+            ],
+            [
+                """
+                let sum = fn(a, b) { let c = a + b; c };
+                let outer = fn() { sum(1, 2) + sum(3, 4); };
+                outer();
+                """,
+                10,
+            ],
+            [
+                """
+                let globalNum = 10;
+                let sum = fn(a, b) {
+                    let c = a + b;
+                    c + globalNum;
+                };
+                let outer = fn() {
+                    sum(1, 2) + sum(3, 4) + globalNum;
+                };
+                outer() + globalNum;
+                """,
+                50,
+            ],
+        ]
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
