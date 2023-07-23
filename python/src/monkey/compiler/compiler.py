@@ -205,6 +205,12 @@ class Compiler:
             case ast.ReturnStatement():
                 self.compile(node.value)
                 self.emit(code.OpCode.ReturnValue)
+            case ast.CallExpression():
+                if node.function:
+                    self.compile(node.function)
+                else:
+                    self.emit(code.OpCode.PNull)
+                self.emit(code.OpCode.Call)
             case _:
                 raise RuntimeError(f"failed to compile node:\n{pformat(node)}")
         return None

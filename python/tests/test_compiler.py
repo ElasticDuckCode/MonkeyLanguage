@@ -453,6 +453,42 @@ class TestCompiler(TestCase):
         ):
             self.verify_compiler(test_code, expected_const, insts)
 
+    def test_compiler_function_calls(self):
+        test_code_list = [
+            "fn() { 24 }();",
+            "let noArg = fn() { 24 }; noArg();",
+        ]
+        expected_const_list = [
+            [
+                24,
+                code.make(code.OpCode.PConstant, 0)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+            [
+                24,
+                code.make(code.OpCode.PConstant, 0)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+        ]
+        insts_list = [
+            [
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Call),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.GetGlobal, 0),
+                code.make(code.OpCode.Call),
+                code.make(code.OpCode.Pop),
+            ],
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)
+
     def test_compiler_function_scopes(self):
         c = compiler.Compiler()
 

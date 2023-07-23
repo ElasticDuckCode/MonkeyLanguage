@@ -3,9 +3,11 @@ from typing import Final
 from ..code import code
 from ..compiler import compiler
 from ..obj import obj
+from . import frame
 
 STACK_SIZE: Final[int] = 2048
 GLOBAL_SIZE: Final[int] = 2**16
+MAX_FRAMES: Final[int] = 2**10
 
 
 def build_new_globals() -> list[obj.Object]:
@@ -16,17 +18,53 @@ def build_new_stack() -> list[obj.Object]:
     return [obj.NULL] * STACK_SIZE
 
 
+def build_new_frames() -> list[frame.Frame]:
+    return [frame.Frame(obj.CompiledFunction(bytearray(0)))] * MAX_FRAMES
+
+
 class VirtualMachine:
     def __init__(
         self,
         bytecode: compiler.Bytecode,
         globals: list[obj.Object] = build_new_globals(),
     ) -> None:
+        self.stack: list[obj.Object] = build_new_stack()
         self.sp: int = 0
-        self.instructions: bytes = bytecode.instructions
+
+        self.frames: list[frame.Frame] = build_new_frames()
+        mainFn = obj.CompiledFunction(bytecode.instructions)
+        mainFrame = frame.Frame(mainFn)
+        self.frames[0] = mainFrame
+        self.fp: int = 1
+
         self.constants: list[obj.Object] = bytecode.constants
         self.globals: list[obj.Object] = globals
-        self.stack: list[obj.Object] = build_new_stack()
+
+    @property
+    def curr_frame(self) -> frame.Frame:
+        return self.frames[self.fp - 1]
+
+    def push_frame(self, f: frame.Frame) -> None:
+        if self.fp > MAX_FRAMES:
+            raise OverflowError("Frame stack overflow.")
+        self.frames[self.fp] = f
+        self.fp += 1
+
+    def pop_frame(self) -> frame.Frame:
+        self.fp -= 1
+        return self.frames[self.fp]
+
+    @property
+    def instructions(self):
+        return self.curr_frame.instructions
+
+    @property
+    def ip(self):
+        return self.curr_frame.ip
+
+    @ip.setter
+    def ip(self, i: int):
+        self.frames[self.fp - 1].ip = i
 
     @property
     def stack_top(self) -> obj.Object | None:
@@ -64,14 +102,16 @@ class VirtualMachine:
         return hash
 
     def run(self) -> None:
-        ip = 0
-        while ip < len(self.instructions):
-            op = code.OpCode(self.instructions[ip].to_bytes(1, "big"))
-            ip += 1
+        self.ip += 1
+        while self.ip < len(self.instructions):
+            op = code.OpCode(self.instructions[self.ip].to_bytes(1, "big"))
+            self.ip += 1
             match op:
                 case code.OpCode.PConstant:
-                    const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
-                    ip += 2
+                    const_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip += 2
                     self.push(self.constants[const_idx])
                 case code.OpCode.Add:
                     right = self.pop()
@@ -155,33 +195,45 @@ class VirtualMachine:
                         result = obj.NULL
                     self.push(result)
                 case code.OpCode.Jump:
-                    const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
-                    ip = const_idx
+                    const_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip = const_idx
                 case code.OpCode.JumpNT:
-                    const_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
-                    ip += 2
+                    const_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip += 2
                     condition = self.pop()
                     if condition in [obj.FALSE, obj.NULL]:
-                        ip = const_idx
+                        self.ip = const_idx
                 case code.OpCode.PNull:
                     self.push(obj.NULL)
                 case code.OpCode.SetGlobal:
-                    global_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
-                    ip += 2
+                    global_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip += 2
                     value = self.pop()
                     self.globals[global_idx] = value
                 case code.OpCode.GetGlobal:
-                    global_idx = int.from_bytes(self.instructions[ip : ip + 2], "big")
-                    ip += 2
+                    global_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip += 2
                     self.push(self.globals[global_idx])
                 case code.OpCode.PArray:
-                    n_elems = int.from_bytes(self.instructions[ip : ip + 2], "big")
-                    ip += 2
+                    n_elems = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip += 2
                     array = self.pop_array(n_elems)
                     self.push(obj.Array(array))
                 case code.OpCode.PHash:
-                    n_keyval = int.from_bytes(self.instructions[ip : ip + 2], "big")
-                    ip += 2
+                    n_keyval = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip += 2
                     hash = self.pop_hash(n_keyval)
                     self.push(obj.Hash(hash))
                 case code.OpCode.Index:
