@@ -27,6 +27,8 @@ class OpCode(Enum):
     Call = b"\x16"
     ReturnValue = b"\x17"
     Return = b"\x18"
+    SetLocal = b"\x19"
+    GetLocal = b"\x1a"
 
 
 @dataclass
@@ -52,14 +54,16 @@ OpDefs: dict[OpCode, Definition] = {
     OpCode.Jump: Definition(OpCode.Jump.name, [2]),
     OpCode.JumpNT: Definition(OpCode.JumpNT.name, [2]),
     OpCode.PNull: Definition(OpCode.PNull.name, []),
-    OpCode.GetGlobal: Definition(OpCode.GetGlobal.name, [2]),
     OpCode.SetGlobal: Definition(OpCode.SetGlobal.name, [2]),
+    OpCode.GetGlobal: Definition(OpCode.GetGlobal.name, [2]),
     OpCode.PArray: Definition(OpCode.PArray.name, [2]),
     OpCode.PHash: Definition(OpCode.PHash.name, [2]),
     OpCode.Index: Definition(OpCode.Index.name, []),
     OpCode.Call: Definition(OpCode.Call.name, []),
     OpCode.ReturnValue: Definition(OpCode.ReturnValue.name, []),
     OpCode.Return: Definition(OpCode.Return.name, []),
+    OpCode.SetLocal: Definition(OpCode.SetLocal.name, [1]),
+    OpCode.GetLocal: Definition(OpCode.GetLocal.name, [1]),
 }
 
 

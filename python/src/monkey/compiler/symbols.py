@@ -1,8 +1,9 @@
-from dataclasses import dataclass, field
-from typing import NewType
+from dataclasses import dataclass
+from typing import NewType, Optional
 
 Scope = NewType("Scope", str)
 GLOBAL_SCOPE = Scope("GLOBAL")
+LOCAL_SCOPE = Scope("LOCAL")
 
 
 @dataclass(eq=True, frozen=True)
@@ -12,16 +13,30 @@ class Symbol:
     index: int
 
 
-@dataclass
 class Table:
-    store: dict[str, Symbol] = field(default_factory=dict)
-    n_def: int = 0
+    def __init__(
+        self,
+        outer=None,
+        store: Optional[dict[str, Symbol]] = None,
+        n_def: int = 0,
+    ):
+        self.store: dict[str, Symbol] = {}
+        self.n_def: int = n_def
+        if store:
+            store = store
+        self.outer: Table | None = outer
 
     def resolve(self, name: str) -> Symbol:
+        if self.outer:
+            if name not in self.store.keys():
+                return self.outer.resolve(name)
         return self.store[name]
 
     def define(self, name: str) -> Symbol:
-        sym = Symbol(name, GLOBAL_SCOPE, self.n_def)
+        scope = GLOBAL_SCOPE
+        if self.outer is not None:
+            scope = LOCAL_SCOPE
+        sym = Symbol(name, scope, self.n_def)
         self.store[name] = sym
         self.n_def += 1
         return sym

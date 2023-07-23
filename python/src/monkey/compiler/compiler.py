@@ -87,10 +87,13 @@ class Compiler:
         cs = CompilationScope(bytearray(0))
         self.scopes.append(cs)
         self.scope_ptr += 1
+        self.sym_table = symbols.Table(self.sym_table)
 
     def leave_scope(self) -> bytearray:
         scope = self.scopes.pop()
         self.scope_ptr -= 1
+        if self.sym_table.outer:
+            self.sym_table = self.sym_table.outer
         return scope.instructions
 
     def compile(self, node: ast.Node) -> None:
@@ -101,7 +104,10 @@ class Compiler:
             case ast.LetStatement():
                 self.compile(node.value)
                 sym = self.sym_table.define(node.name.value)
-                self.emit(code.OpCode.SetGlobal, sym.index)
+                if sym.scope == symbols.GLOBAL_SCOPE:
+                    self.emit(code.OpCode.SetGlobal, sym.index)
+                else:
+                    self.emit(code.OpCode.SetLocal, sym.index)
             case ast.ExpressionStatement():
                 self.compile(node.expression)
                 self.emit(code.OpCode.Pop)
@@ -157,11 +163,11 @@ class Compiler:
             case ast.Identifier(value="null"):
                 self.emit(code.OpCode.PNull)
             case ast.Identifier():
-                if node.value in self.sym_table.store.keys():
-                    sym = self.sym_table.resolve(node.value)
+                sym = self.sym_table.resolve(node.value)
+                if sym.scope == symbols.GLOBAL_SCOPE:
                     self.emit(code.OpCode.GetGlobal, sym.index)
                 else:
-                    raise RuntimeError(f"Unable to resolve identifier: {node.value}")
+                    self.emit(code.OpCode.GetLocal, sym.index)
             case ast.BlockStatement():
                 for s in node.statements:
                     self.compile(s)

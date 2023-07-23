@@ -41,7 +41,13 @@ class TestCompiler(TestCase):
                         self.assertIsInstance(
                             bytecode.constants[i], obj.CompiledFunction
                         )
-                        self.assertEqual(bytecode.constants[i].instructions, expected)
+                        err_msg = (
+                            f"\nwant:\n{code.instructions_to_string(expected)}"
+                            f"\ngot:\n{code.instructions_to_string(bytecode.constants[i].instructions)}"
+                        )
+                        self.assertEqual(
+                            bytecode.constants[i].instructions, expected, err_msg
+                        )
                     case _:
                         self.fail("Unknown object type. Please create new assert...")
 
@@ -493,9 +499,10 @@ class TestCompiler(TestCase):
         c = compiler.Compiler()
 
         self.assertEqual(c.scope_ptr, 0)
+        gtable = c.sym_table
 
         c.emit(code.OpCode.Mul)
-        c.enter_scope()  # TODO
+        c.enter_scope()
         self.assertEqual(c.scope_ptr, 1)
 
         c.emit(code.OpCode.Sub)
@@ -503,8 +510,13 @@ class TestCompiler(TestCase):
         last = c.scopes[c.scope_ptr].last_inst
         self.assertEqual(last.opcode, code.OpCode.Sub)
 
-        c.leave_scope()  # TODO
+        self.assertEqual(c.sym_table.outer, gtable, "failed to scope symbol table.")
+        c.leave_scope()
         self.assertEqual(c.scope_ptr, 0)
+        self.assertEqual(c.sym_table, gtable, "failed to restore global symbol table.")
+        self.assertEqual(
+            c.sym_table.outer, None, "corrupted global by introducing outer scope."
+        )
 
         c.emit(code.OpCode.Add)
         self.assertEqual(len(c.scopes[c.scope_ptr].instructions), 2)
@@ -512,6 +524,42 @@ class TestCompiler(TestCase):
         self.assertEqual(last.opcode, code.OpCode.Add)
         prev = c.scopes[c.scope_ptr].prev_inst
         self.assertEqual(prev.opcode, code.OpCode.Mul)
+
+    def test_compiler_local_let_statements(self):
+        test_code_list = [
+            "let num = 55; fn() { num }",
+            "fn() { let num = 55; num }",
+        ]
+        expected_const_list = [
+            [
+                55,
+                code.make(code.OpCode.GetGlobal, 0)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+            [
+                55,
+                code.make(code.OpCode.PConstant, 0)
+                + code.make(code.OpCode.SetLocal, 0)
+                + code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+        ]
+        insts_list = [
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Pop),
+            ],
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)
 
     # def test_compiler_template(self):
     #     test_code_list = []
