@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable, Dict, Final, List, NewType, Tuple
+from typing import Callable, Dict, Final, List, NewType
 
 from ..ast import ast
 from ..code import code
