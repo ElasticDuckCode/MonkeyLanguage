@@ -52,25 +52,21 @@ def start(
                             print("[Output] " + evaluated.inspect + "\n", file=rout)
                     elif mode == "vm":
                         comp = compiler.Compiler(constants, table)
-                        try:
-                            comp.compile(program)
-                        except RuntimeError as exx:
-                            log_error("Failed to Compile!", str(exx), rout)
-
-                        # insts = comp.bytecode.instructions
-                        # print(code.instructions_to_string(insts), file=rout)
-
-                        machine = vm.VirtualMachine(comp.bytecode, globals)
-                        try:
-                            machine.run()
-                        except NotImplementedError as exx:
-                            log_error("Failed to run Virtual Machine!", str(exx), rout)
-
-                        if machine.last_popped:
-                            print(
-                                "[Output]: " + machine.last_popped.inspect + "\n",
-                                file=rout,
+                        comp.compile(program)
+                        if len(comp.errors):
+                            log_error(
+                                "Failed to Compile!", comp.error_str + "\n:(", rout
                             )
+                        else:
+                            machine = vm.VirtualMachine(comp.bytecode, globals)
+                            machine.run()
+                            if len(machine.errors):
+                                log_error("VM Error!", machine.error_str + "\n:(", rout)
+                            elif machine.last_popped:
+                                print(
+                                    "[Output]: " + machine.last_popped.inspect + "\n",
+                                    file=rout,
+                                )
                     else:
                         print(f"unsupported mode: {mode}", file=rout)
 

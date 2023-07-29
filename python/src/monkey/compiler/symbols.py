@@ -26,10 +26,12 @@ class Table:
             store = store
         self.outer: Table | None = outer
 
-    def resolve(self, name: str) -> Symbol:
+    def resolve(self, name: str) -> Symbol | None:
         if self.outer:
             if name not in self.store.keys():
                 return self.outer.resolve(name)
+        if name not in self.store.keys():
+            return None
         return self.store[name]
 
     def define(self, name: str) -> Symbol:

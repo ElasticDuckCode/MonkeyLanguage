@@ -22,6 +22,10 @@ def build_new_frames() -> list[frame.Frame]:
     return [frame.Frame(obj.CompiledFunction(bytearray(0), 0, 0))] * MAX_FRAMES
 
 
+def new_error(msg: str) -> obj.Error:
+    return obj.Error(msg)
+
+
 class VirtualMachine:
     def __init__(
         self,
@@ -39,6 +43,11 @@ class VirtualMachine:
 
         self.constants: list[obj.Object] = bytecode.constants
         self.globals: list[obj.Object] = globals
+        self._errors: list[obj.Error] = []
+
+    @property
+    def errors(self):
+        return self._errors
 
     @property
     def curr_frame(self) -> frame.Frame:
@@ -112,6 +121,8 @@ class VirtualMachine:
 
     def run(self) -> None:
         while self.ip < len(self.instructions):
+            if len(self._errors) > 0:
+                break
             op = code.OpCode(self.instructions[self.ip].to_bytes(1, "big"))
             self.ip += 1
             match op:
@@ -270,7 +281,7 @@ class VirtualMachine:
                     self.ip += 1
                     fn = cast(obj.CompiledFunction, self.stack[self.sp - 1 - n_args])
                     if n_args != fn.n_params:
-                        raise TypeError("incorrect number of args")
+                        self._errors.append(new_error("incorrect number of args"))
                     f = frame.Frame(fn, bp=self.sp - n_args)
                     self.push_frame(f)
                     self.sp = f.bp + fn.n_locals
@@ -298,4 +309,8 @@ class VirtualMachine:
                     value = self.stack[self.bp + local_idx]
                     self.push(value)
                 case _:
-                    raise RuntimeError(f"unknown opcode: {op}")
+                    self._errors.append(new_error(f"unknown opcode: {op}"))
+
+    @property
+    def error_str(self):
+        return "\n".join([e.message for e in self._errors])

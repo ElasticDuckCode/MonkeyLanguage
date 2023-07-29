@@ -8,6 +8,10 @@ from ..obj import obj
 from . import symbols
 
 
+def new_error(msg: str) -> obj.Error:
+    return obj.Error(msg)
+
+
 @dataclass
 class Bytecode:
     instructions: bytearray
@@ -58,6 +62,11 @@ class Compiler:
         self.main_scope = CompilationScope(bytearray(0))
         self.scopes: list[CompilationScope] = [self.main_scope]
         self.scope_ptr: int = 0
+        self._errors: list[obj.Error] = []
+
+    @property
+    def errors(self):
+        return self._errors
 
     @property
     def instructions(self) -> bytearray:
@@ -97,6 +106,8 @@ class Compiler:
         return scope.instructions
 
     def compile(self, node: ast.Node) -> None:
+        if len(self._errors) > 0:
+            return
         match node:
             case ast.Program():
                 for stmt in node.statements:
@@ -164,7 +175,9 @@ class Compiler:
                 self.emit(code.OpCode.PNull)
             case ast.Identifier():
                 sym = self.sym_table.resolve(node.value)
-                if sym.scope == symbols.GLOBAL_SCOPE:
+                if sym is None:
+                    self.errors.append(new_error(f"unknown identifier: {node.value}"))
+                elif sym.scope == symbols.GLOBAL_SCOPE:
                     self.emit(code.OpCode.GetGlobal, sym.index)
                 else:
                     self.emit(code.OpCode.GetLocal, sym.index)
@@ -190,10 +203,12 @@ class Compiler:
                     self.change_instruction_operand(jump_end_else, end_else)
                     self.change_instruction_operand(jump_end_if, end_if)
                 else:
-                    raise RuntimeError(
-                        (
-                            f"failed to compile node:\n{pformat(node)}."
-                            " Conditional missing condition or consequence."
+                    self._errors.append(
+                        new_error(
+                            (
+                                f"failed to compile node:\n{pformat(node)}."
+                                " Conditional missing condition or consequence."
+                            )
                         )
                     )
             case ast.FunctionLiteral():
@@ -232,7 +247,9 @@ class Compiler:
                 else:
                     self.emit(code.OpCode.Call, 0)
             case _:
-                raise RuntimeError(f"failed to compile node:\n{pformat(node)}")
+                self._errors.append(
+                    new_error(f"failed to compile node:\n{pformat(node)}")
+                )
         return None
 
     def add_constant(self, c: obj.Object) -> int:
@@ -275,3 +292,7 @@ class Compiler:
     @property
     def bytecode(self) -> Bytecode:
         return Bytecode(self.instructions, self.constants)
+
+    @property
+    def error_str(self):
+        return "\n".join([e.message for e in self._errors])
