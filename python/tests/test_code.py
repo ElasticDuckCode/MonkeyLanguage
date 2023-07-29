@@ -24,6 +24,13 @@ class TestOpCode(TestCase):
                 [255],
                 bytes(code.OpCode.GetLocal.value) + (255).to_bytes(1, "big"),
             ),
+            (
+                code.OpCode.Closure,
+                [65535, 255],
+                bytes(code.OpCode.Closure.value)
+                + (65535).to_bytes(2, "big")
+                + (255).to_bytes(1, "big"),
+            ),
         )
         for opcode, operands, expected in cases:
             instruction = code.make(opcode, *operands)
@@ -37,12 +44,14 @@ class TestOpCode(TestCase):
             + code.make(code.OpCode.Add)
             + code.make(code.OpCode.SetLocal, 255)
             + code.make(code.OpCode.GetLocal, 255)
+            + code.make(code.OpCode.Closure, 65535, 255)
         )
         expected = """0000 PConstant 1
 0003 PConstant 2
 0006 PConstant 65535
 0009 Add
 000a SetLocal 255
-000c GetLocal 255"""
+000c GetLocal 255
+000e Closure 65535 255"""
         received = code.instructions_to_string(instructions)
         self.assertEqual(received, expected)

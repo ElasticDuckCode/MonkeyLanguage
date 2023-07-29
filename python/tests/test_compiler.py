@@ -438,19 +438,19 @@ class TestCompiler(TestCase):
         ]
         insts_list = [
             [
-                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Closure, 2, 0),
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Closure, 2, 0),
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 2),
+                code.make(code.OpCode.Closure, 2, 0),
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Closure, 0, 0),
                 code.make(code.OpCode.Pop),
             ],
         ]
@@ -495,19 +495,19 @@ class TestCompiler(TestCase):
         ]
         insts_list = [
             [
-                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Closure, 1, 0),
                 code.make(code.OpCode.Call, 0),
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Closure, 1, 0),
                 code.make(code.OpCode.SetGlobal, 0),
                 code.make(code.OpCode.GetGlobal, 0),
                 code.make(code.OpCode.Call, 0),
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Closure, 0, 0),
                 code.make(code.OpCode.SetGlobal, 0),
                 code.make(code.OpCode.GetGlobal, 0),
                 code.make(code.OpCode.PConstant, 1),
@@ -515,7 +515,7 @@ class TestCompiler(TestCase):
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Closure, 0, 0),
                 code.make(code.OpCode.SetGlobal, 0),
                 code.make(code.OpCode.GetGlobal, 0),
                 code.make(code.OpCode.PConstant, 1),
@@ -583,11 +583,11 @@ class TestCompiler(TestCase):
             [
                 code.make(code.OpCode.PConstant, 0),
                 code.make(code.OpCode.SetGlobal, 0),
-                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Closure, 1, 0),
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 1),
+                code.make(code.OpCode.Closure, 1, 0),
                 code.make(code.OpCode.Pop),
             ],
         ]
@@ -623,7 +623,7 @@ class TestCompiler(TestCase):
                 code.make(code.OpCode.Pop),
             ],
             [
-                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Closure, 0, 0),
                 code.make(code.OpCode.Pop),
             ],
         ]

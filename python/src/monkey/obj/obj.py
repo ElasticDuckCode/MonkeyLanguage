@@ -19,6 +19,7 @@ BUILTIN_OBJ: Final[ObjectType] = ObjectType("BUILTIN")
 ARRAY_OBJ: Final[ObjectType] = ObjectType("ARRAY")
 HASH_OBJ: Final[ObjectType] = ObjectType("HASH")
 COMPILED_FUNCTION_OBJ: Final[ObjectType] = ObjectType("COMPILED_FUNCTION")
+CLOSURE_OBJ: Final[ObjectType] = ObjectType("CLOSURE")
 
 
 @dataclass(eq=True, frozen=True)
@@ -151,6 +152,26 @@ class CompiledFunction(Object):
             "\n", "\n    "
         )
         return f"compiled_function[\n    {str_inst}\n]"
+
+
+@dataclass(eq=True, frozen=True)
+class Closure(Object):
+    fn: CompiledFunction
+    free: list[Object]
+
+    @property
+    def otype(self) -> ObjectType:
+        return CLOSURE_OBJ
+
+    @property
+    def inspect(self) -> str:
+        str_inpsect = "Closure["
+        str_inpsect += self.fn.inspect
+        str_inpsect += ",\n\nFree:\n"
+        for o in self.free:
+            str_inpsect += o.inspect
+        str_inpsect += "]"
+        return str_inpsect
 
 
 @dataclass(eq=True, frozen=True)

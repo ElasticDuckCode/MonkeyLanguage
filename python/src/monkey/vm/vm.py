@@ -2,7 +2,7 @@ from typing import Final, cast
 
 from ..code import code
 from ..compiler import compiler
-from ..obj import obj
+from ..obj import obj, builtin
 from . import frame
 
 STACK_SIZE: Final[int] = 2048
@@ -19,7 +19,9 @@ def build_new_stack() -> list[obj.Object]:
 
 
 def build_new_frames() -> list[frame.Frame]:
-    return [frame.Frame(obj.CompiledFunction(bytearray(0), 0, 0))] * MAX_FRAMES
+    return [
+        frame.Frame(obj.Closure(obj.CompiledFunction(bytearray(0), 0, 0), []))
+    ] * MAX_FRAMES
 
 
 def new_error(msg: str) -> obj.Error:
@@ -36,9 +38,10 @@ class VirtualMachine:
         self.sp: int = 0
 
         self.frames: list[frame.Frame] = build_new_frames()
-        mainFn = obj.CompiledFunction(bytecode.instructions, 0, 0)
-        mainFrame = frame.Frame(mainFn)
-        self.frames[0] = mainFrame
+        main_fn = obj.CompiledFunction(bytecode.instructions, 0, 0)
+        main_closure = obj.Closure(main_fn, [])
+        main_frame = frame.Frame(main_closure)
+        self.frames[0] = main_frame
         self.fp: int = 1
 
         self.constants: list[obj.Object] = bytecode.constants
@@ -101,6 +104,12 @@ class VirtualMachine:
         self.stack[self.sp] = o
         self.sp += 1
 
+    def push_closure(self, idx: int) -> None:
+        constant = self.constants[idx]
+        fn = cast(obj.CompiledFunction, constant)
+        cl = obj.Closure(fn, [])
+        self.push(cl)
+
     def pop(self) -> obj.Object:
         if self.sp - 1 < 0:
             return obj.NULL
@@ -118,6 +127,30 @@ class VirtualMachine:
         self.sp -= n_keyval
         hash = dict(map(lambda k, v: (k, v), keyvals[::2], keyvals[1::2]))
         return hash
+
+    def call_closure(self, cl: obj.Closure, n_args: int):
+        if n_args != cl.fn.n_params:
+            self._errors.append(new_error("incorrect number of args"))
+        f = frame.Frame(cl, bp=self.sp - n_args)
+        self.push_frame(f)
+        self.sp = f.bp + cl.fn.n_locals
+
+    def call_builtin(self, fn: obj.BuiltIn, n_args: int):
+        args = self.stack[self.sp - n_args : self.sp]
+        result = fn.fn(*args)
+        self.sp = self.sp - n_args - 1
+        if result is None:
+            self.push(obj.NULL)
+        else:
+            self.push(result)
+
+    def execute_call(self, n_args: int):
+        callee = self.stack[self.sp - 1 - n_args]
+        match callee:
+            case obj.Closure():
+                self.call_closure(callee, n_args)
+            case obj.BuiltIn():
+                self.call_builtin(callee, n_args)
 
     def run(self) -> None:
         while self.ip < len(self.instructions):
@@ -279,19 +312,14 @@ class VirtualMachine:
                         self.instructions[self.ip : self.ip + 1], "big"
                     )
                     self.ip += 1
-                    fn = cast(obj.CompiledFunction, self.stack[self.sp - 1 - n_args])
-                    if n_args != fn.n_params:
-                        self._errors.append(new_error("incorrect number of args"))
-                    f = frame.Frame(fn, bp=self.sp - n_args)
-                    self.push_frame(f)
-                    self.sp = f.bp + fn.n_locals
+                    self.execute_call(n_args)
                 case code.OpCode.ReturnValue:
                     value = self.pop()
                     f = self.pop_frame()
                     self.sp = f.bp - 1
                     self.push(value)
                 case code.OpCode.Return:
-                    self.pop_frame()
+                    f = self.pop_frame()
                     self.sp = f.bp - 1
                     self.push(obj.NULL)
                 case code.OpCode.SetLocal:
@@ -308,6 +336,22 @@ class VirtualMachine:
                     self.ip += 1
                     value = self.stack[self.bp + local_idx]
                     self.push(value)
+                case code.OpCode.GetBuiltIn:
+                    builtin_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 1], "big"
+                    )
+                    self.ip += 1
+                    definition = builtin.BuiltIns[builtin_idx]
+                    self.push(definition.fn)
+                case code.OpCode.Closure:
+                    const_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 2], "big"
+                    )
+                    self.ip += 2
+                    _ = int.from_bytes(self.instructions[self.ip : self.ip + 1], "big")
+                    self.ip += 1
+                    self.push_closure(const_idx)
+
                 case _:
                     self._errors.append(new_error(f"unknown opcode: {op}"))
 

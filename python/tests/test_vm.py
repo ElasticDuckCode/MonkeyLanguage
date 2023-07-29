@@ -46,10 +46,12 @@ class TestVirtualMachine(TestCase):
                     self.verify_expected_object(e, a)
                 for e, a in zip(expected.values(), actual.pairs.values()):
                     self.verify_expected_object(e, a)
-
             case None:
                 self.assertIsInstance(actual, obj.Null)
                 self.assertEqual(expected, None)
+            case obj.Error():
+                actual = cast(obj.Error, actual)
+                self.assertEqual(expected.message, actual.message)
             case _:
                 print(expected, actual, flush=True)
                 self.assertEqual(True, False)
@@ -332,6 +334,30 @@ class TestVirtualMachine(TestCase):
                 """,
                 50,
             ],
+        ]
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
+
+    def test_vm_builtins(self):
+        tests = [
+            ['len("")', 0],
+            ['len("four")', 4],
+            ['len("hello world")', 11],
+            ["len(1)", obj.Error("arguement to `len` not supported. got INTEGER")],
+            [
+                'len("one", "two")',
+                obj.Error("wrong number of arguements. got=2, want=1"),
+            ],
+            ["len([])", 0],
+            ["len([1, 2, 3])", 3],
+            ['puts("hello world")', None],
+            ["first([1,2,3])", 1],
+            ["first([])", None],
+            ["last([1,2,3])", 3],
+            ["last([])", None],
+            ["rest([1,2,3])", [2, 3]],
+            ["rest([])", None],
+            ["push([], 1)", [1]],
         ]
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)

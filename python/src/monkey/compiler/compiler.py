@@ -231,7 +231,7 @@ class Compiler:
                     n_params = 0
                 insts = self.leave_scope()
                 fn = obj.CompiledFunction(insts, n_locals, n_params)
-                self.emit(code.OpCode.PConstant, self.add_constant(fn))
+                self.emit(code.OpCode.Closure, self.add_constant(fn), 0)
             case ast.ReturnStatement():
                 self.compile(node.value)
                 self.emit(code.OpCode.ReturnValue)
