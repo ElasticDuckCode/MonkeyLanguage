@@ -225,13 +225,16 @@ class Compiler:
                     self.remove_last_instruction()  # implict returns
                     self.emit(code.OpCode.ReturnValue)
                 n_locals = self.sym_table.n_def
+                free_sym = self.sym_table.free_sym
+                insts = self.leave_scope()
                 if params:
                     n_params = len(params)
                 else:
                     n_params = 0
-                insts = self.leave_scope()
+                for sym in free_sym:
+                    self.load_symbol(sym)
                 fn = obj.CompiledFunction(insts, n_locals, n_params)
-                self.emit(code.OpCode.Closure, self.add_constant(fn), 0)
+                self.emit(code.OpCode.Closure, self.add_constant(fn), len(free_sym))
             case ast.ReturnStatement():
                 self.compile(node.value)
                 self.emit(code.OpCode.ReturnValue)
@@ -297,6 +300,8 @@ class Compiler:
                 self.emit(code.OpCode.GetLocal, sym.index)
             case symbols.BUILTIN_SCOPE:
                 self.emit(code.OpCode.GetBuiltIn, sym.index)
+            case symbols.FREE_SCOPE:
+                self.emit(code.OpCode.GetFree, sym.index)
 
     @property
     def bytecode(self) -> Bytecode:

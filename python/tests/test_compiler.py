@@ -632,6 +632,114 @@ class TestCompiler(TestCase):
         ):
             self.verify_compiler(test_code, expected_const, insts)
 
+    def test_compiler_closures(self):
+        test_code_list = [
+            """
+            fn(a) {
+                fn(b) {
+                    a + b
+                }
+            }
+            """,
+            """
+            fn(a) {
+                fn(b) {
+                    fn(c) {
+                        a + b + c
+                    }
+                }
+            }
+            """,
+            """
+            let global = 55;
+            fn() {
+                let a = 66;
+                fn() {
+                    let b = 77;
+
+                    fn() {
+                        let c = 88;
+
+                        global + a + b + c;
+                    }
+                }
+            }
+            """,
+        ]
+        expected_const_list = [
+            [
+                code.make(code.OpCode.GetFree, 0)
+                + code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.ReturnValue),
+                code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Closure, 0, 1)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+            [
+                code.make(code.OpCode.GetFree, 0)
+                + code.make(code.OpCode.GetFree, 1)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.ReturnValue),
+                code.make(code.OpCode.GetFree, 0)
+                + code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Closure, 0, 2)
+                + code.make(code.OpCode.ReturnValue),
+                code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Closure, 1, 1)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+            [
+                55,
+                66,
+                77,
+                88,
+                code.make(code.OpCode.PConstant, 3)
+                + code.make(code.OpCode.SetLocal, 0)
+                + code.make(code.OpCode.GetGlobal, 0)
+                + code.make(code.OpCode.GetFree, 0)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.GetFree, 1)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Add)
+                + code.make(code.OpCode.ReturnValue),
+                code.make(code.OpCode.PConstant, 2)
+                + code.make(code.OpCode.SetLocal, 0)
+                + code.make(code.OpCode.GetFree, 0)
+                + code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Closure, 4, 2)
+                + code.make(code.OpCode.ReturnValue),
+                code.make(code.OpCode.PConstant, 1)
+                + code.make(code.OpCode.SetLocal, 0)
+                + code.make(code.OpCode.GetLocal, 0)
+                + code.make(code.OpCode.Closure, 5, 1)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+        ]
+        insts_list = [
+            [
+                code.make(code.OpCode.Closure, 1, 0),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.Closure, 2, 0),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.SetGlobal, 0),
+                code.make(code.OpCode.Closure, 6, 0),
+                code.make(code.OpCode.Pop),
+            ],
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)
+
     # def test_compiler_template(self):
     #     test_code_list = []
     #     expected_const_list = []

@@ -115,3 +115,55 @@ class TestSymbols(TestCase):
                 result = table.resolve(sym.name)
                 self.assertIsNotNone(result)
                 self.assertEqual(result, sym)
+
+    def test_resolve_free(self):
+        expected1 = [
+            [
+                symbols.Symbol("a", symbols.GLOBAL_SCOPE, 0),
+                symbols.Symbol("b", symbols.GLOBAL_SCOPE, 1),
+                symbols.Symbol("c", symbols.LOCAL_SCOPE, 0),
+                symbols.Symbol("d", symbols.LOCAL_SCOPE, 1),
+            ],
+        ]
+        expected2 = [
+            [
+                symbols.Symbol("a", symbols.GLOBAL_SCOPE, 0),
+                symbols.Symbol("b", symbols.GLOBAL_SCOPE, 1),
+                symbols.Symbol("c", symbols.FREE_SCOPE, 0),
+                symbols.Symbol("d", symbols.FREE_SCOPE, 1),
+                symbols.Symbol("e", symbols.LOCAL_SCOPE, 0),
+                symbols.Symbol("f", symbols.LOCAL_SCOPE, 1),
+            ],
+            [
+                symbols.Symbol("c", symbols.LOCAL_SCOPE, 0),
+                symbols.Symbol("d", symbols.LOCAL_SCOPE, 1),
+            ],
+        ]
+        gt = symbols.Table()
+        gt.define("a")
+        gt.define("b")
+        lt1 = symbols.Table(gt)
+        lt1.define("c")
+        lt1.define("d")
+        lt2 = symbols.Table(lt1)
+        lt2.define("e")
+        lt2.define("f")
+
+        for sym in expected1[0]:
+            result = lt1.resolve(sym.name)
+            self.assertIsNotNone(result)
+            self.assertEqual(result, sym)
+
+        for sym in expected2[0]:
+            result = lt2.resolve(sym.name)
+            self.assertIsNotNone(result)
+            self.assertEqual(result, sym)
+
+        self.assertEqual(len(lt2.free_sym), len(expected2[1]))
+        for i, sym in enumerate(expected2[1]):
+            result = lt2.free_sym[i]
+            self.assertIsNotNone(result)
+            self.assertEqual(result, sym)
+
+        self.assertIsNone(lt2.resolve("g"))
+        self.assertIsNone(lt2.resolve("h"))

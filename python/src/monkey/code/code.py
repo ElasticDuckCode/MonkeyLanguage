@@ -31,6 +31,7 @@ class OpCode(Enum):
     GetLocal = b"\x1a"
     GetBuiltIn = b"\x1b"
     Closure = b"\x1c"
+    GetFree = b"\x1d"
 
 
 @dataclass
@@ -68,6 +69,7 @@ OpDefs: dict[OpCode, Definition] = {
     OpCode.GetLocal: Definition(OpCode.GetLocal.name, [1]),
     OpCode.GetBuiltIn: Definition(OpCode.GetBuiltIn.name, [1]),
     OpCode.Closure: Definition(OpCode.Closure.name, [2, 1]),
+    OpCode.GetFree: Definition(OpCode.GetFree.name, [1]),
 }
 
 
