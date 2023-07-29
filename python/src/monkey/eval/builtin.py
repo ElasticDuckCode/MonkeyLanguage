@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import DefaultDict, Callable
 
-from ..obj import obj
+from ..obj import obj, builtin
 
 
 def _monkey_builtin_len(*args: obj.Object) -> obj.Object:
@@ -94,7 +94,7 @@ def _monkey_builtin_puts(*args: obj.Object) -> obj.Object:
 
 
 BuiltIn: DefaultDict[str, obj.BuiltIn | None] = defaultdict(lambda: None)
-BuiltIn["len"] = obj.BuiltIn(fn=_monkey_builtin_len)
+BuiltIn["len"] = builtin.get_builtin_by_name("len")
 BuiltIn["first"] = obj.BuiltIn(fn=_monkey_builtin_first)
 BuiltIn["last"] = obj.BuiltIn(fn=_monkey_builtin_last)
 BuiltIn["rest"] = obj.BuiltIn(fn=_monkey_builtin_rest)
