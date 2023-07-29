@@ -29,6 +29,7 @@ class OpCode(Enum):
     Return = b"\x18"
     SetLocal = b"\x19"
     GetLocal = b"\x1a"
+    GetBuiltIn = b"\x1b"
 
 
 @dataclass
@@ -64,6 +65,7 @@ OpDefs: dict[OpCode, Definition] = {
     OpCode.Return: Definition(OpCode.Return.name, []),
     OpCode.SetLocal: Definition(OpCode.SetLocal.name, [1]),
     OpCode.GetLocal: Definition(OpCode.GetLocal.name, [1]),
+    OpCode.GetBuiltIn: Definition(OpCode.GetBuiltIn.name, [1]),
 }
 
 

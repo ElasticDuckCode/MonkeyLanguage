@@ -596,6 +596,42 @@ class TestCompiler(TestCase):
         ):
             self.verify_compiler(test_code, expected_const, insts)
 
+    def test_compiler_builtins(self):
+        test_code_list = [
+            "len([]); push([], 1);",
+            "fn() { len([]) }",
+        ]
+        expected_const_list = [
+            [1],
+            [
+                code.make(code.OpCode.GetBuiltIn, 0)
+                + code.make(code.OpCode.PArray, 0)
+                + code.make(code.OpCode.Call, 1)
+                + code.make(code.OpCode.ReturnValue),
+            ],
+        ]
+        insts_list = [
+            [
+                code.make(code.OpCode.GetBuiltIn, 0),
+                code.make(code.OpCode.PArray, 0),
+                code.make(code.OpCode.Call, 1),
+                code.make(code.OpCode.Pop),
+                code.make(code.OpCode.GetBuiltIn, 5),
+                code.make(code.OpCode.PArray, 0),
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Call, 2),
+                code.make(code.OpCode.Pop),
+            ],
+            [
+                code.make(code.OpCode.PConstant, 0),
+                code.make(code.OpCode.Pop),
+            ],
+        ]
+        for test_code, expected_const, insts in zip(
+            test_code_list, expected_const_list, insts_list
+        ):
+            self.verify_compiler(test_code, expected_const, insts)
+
     # def test_compiler_template(self):
     #     test_code_list = []
     #     expected_const_list = []

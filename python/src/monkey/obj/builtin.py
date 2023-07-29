@@ -93,11 +93,11 @@ class BuiltInStruct:
 
 BuiltIns: list[BuiltInStruct] = [
     BuiltInStruct("len", obj.BuiltIn(fn=_monkey_builtin_len)),
+    BuiltInStruct("puts", obj.BuiltIn(fn=_monkey_builtin_puts)),
     BuiltInStruct("first", obj.BuiltIn(fn=_monkey_builtin_first)),
     BuiltInStruct("last", obj.BuiltIn(fn=_monkey_builtin_last)),
     BuiltInStruct("rest", obj.BuiltIn(fn=_monkey_builtin_rest)),
     BuiltInStruct("push", obj.BuiltIn(fn=_monkey_builtin_push)),
-    BuiltInStruct("puts", obj.BuiltIn(fn=_monkey_builtin_puts)),
 ]
 
 

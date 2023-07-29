@@ -4,6 +4,7 @@ from typing import NewType, Optional
 Scope = NewType("Scope", str)
 GLOBAL_SCOPE = Scope("GLOBAL")
 LOCAL_SCOPE = Scope("LOCAL")
+BUILTIN_SCOPE = Scope("BUILTIN")
 
 
 @dataclass(eq=True, frozen=True)
@@ -41,4 +42,9 @@ class Table:
         sym = Symbol(name, scope, self.n_def)
         self.store[name] = sym
         self.n_def += 1
+        return sym
+
+    def define_builtin(self, i: int, name: str) -> Symbol:
+        sym = Symbol(name, BUILTIN_SCOPE, i)
+        self.store[name] = sym
         return sym

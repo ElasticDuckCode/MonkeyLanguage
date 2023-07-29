@@ -95,3 +95,23 @@ class TestSymbols(TestCase):
             result = lt2.resolve(sym.name)
             self.assertIsNotNone(result)
             self.assertEqual(result, sym)
+
+    def test_resolve_builtins(self):
+        expected = [
+            symbols.Symbol("a", symbols.BUILTIN_SCOPE, 0),
+            symbols.Symbol("c", symbols.BUILTIN_SCOPE, 1),
+            symbols.Symbol("e", symbols.BUILTIN_SCOPE, 2),
+            symbols.Symbol("f", symbols.BUILTIN_SCOPE, 3),
+        ]
+        gt = symbols.Table()
+        lt1 = symbols.Table(gt)
+        lt2 = symbols.Table(lt1)
+
+        for i, s in enumerate(expected):
+            gt.define_builtin(i, s.name)
+
+        for table in [gt, lt1, lt2]:
+            for sym in expected:
+                result = table.resolve(sym.name)
+                self.assertIsNotNone(result)
+                self.assertEqual(result, sym)

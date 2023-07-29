@@ -4,7 +4,7 @@ from typing import Optional
 
 from ..ast import ast
 from ..code import code
-from ..obj import obj
+from ..obj import obj, builtin
 from . import symbols
 
 
@@ -55,6 +55,9 @@ class Compiler:
             self.sym_table: symbols.Table = table
         else:
             self.sym_table = symbols.Table()
+
+        for i, b in enumerate(builtin.BuiltIns):
+            self.sym_table.define_builtin(i, b.name)
 
         # self.instructions: bytearray = bytearray(0)
         # self.last_inst: EmittedInstruction | None = None
@@ -177,10 +180,7 @@ class Compiler:
                 sym = self.sym_table.resolve(node.value)
                 if sym is None:
                     self.errors.append(new_error(f"unknown identifier: {node.value}"))
-                elif sym.scope == symbols.GLOBAL_SCOPE:
-                    self.emit(code.OpCode.GetGlobal, sym.index)
-                else:
-                    self.emit(code.OpCode.GetLocal, sym.index)
+                self.load_symbol(sym)
             case ast.BlockStatement():
                 for s in node.statements:
                     self.compile(s)
@@ -288,6 +288,15 @@ class Compiler:
     def set_last_instruction(self, op: code.OpCode, pos: int) -> None:
         self.prev_inst = self.last_inst
         self.last_inst = EmittedInstruction(op, pos)
+
+    def load_symbol(self, sym: symbols.Symbol):
+        match sym.scope:
+            case symbols.GLOBAL_SCOPE:
+                self.emit(code.OpCode.GetGlobal, sym.index)
+            case symbols.LOCAL_SCOPE:
+                self.emit(code.OpCode.GetLocal, sym.index)
+            case symbols.BUILTIN_SCOPE:
+                self.emit(code.OpCode.GetBuiltIn, sym.index)
 
     @property
     def bytecode(self) -> Bytecode:
