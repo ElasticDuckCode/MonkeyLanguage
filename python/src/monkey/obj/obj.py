@@ -167,7 +167,7 @@ class Closure(Object):
     def inspect(self) -> str:
         str_inpsect = "Closure["
         str_inpsect += self.fn.inspect
-        str_inpsect += ",\n\nFree:\n"
+        str_inpsect += ",\nFree[\n"
         for o in self.free:
             str_inpsect += o.inspect
         str_inpsect += "]"

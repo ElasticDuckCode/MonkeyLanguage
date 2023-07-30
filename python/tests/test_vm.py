@@ -1,7 +1,7 @@
 from typing import Any, cast
 from unittest import TestCase
 
-from src.monkey import ast, compiler, lexer, obj, parser, vm
+from src.monkey import ast, compiler, lexer, obj, parser, vm, code
 
 
 def parse(src_code: str) -> ast.Program:
@@ -358,6 +358,177 @@ class TestVirtualMachine(TestCase):
             ["rest([1,2,3])", [2, 3]],
             ["rest([])", None],
             ["push([], 1)", [1]],
+        ]
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
+
+    def test_vm_closures(self):
+        tests = [
+            [
+                """
+                let newClosure = fn(a,b) {
+                    fn() { a + b; };
+                }
+                let closure = newClosure(99, 100);
+                closure();
+                """,
+                199,
+            ],
+            [
+                """
+                let newAdder = fn(a, b) {
+                    fn(c) { a + b + c }
+                }
+                let adder = newAdder(1, 2);
+                adder(8)
+                """,
+                11,
+            ],
+            [
+                """
+                let newAdder = fn(a, b) {
+                    let c = a + b;
+                    fn(d) { c + d };
+                }
+                let adder = newAdder(1, 2);
+                adder(8);
+                """,
+                11,
+            ],
+            [
+                """
+                let newAdderOuter = fn(a, b) {
+                    let c = a + b;
+                    fn (d) {
+                        let e = c + d;
+                        fn (f) { e + f; }
+                    };
+                };
+                let newAdderInner = newAdderOuter(1, 2);
+                let adder = newAdderInner(3);
+                adder(8);
+                """,
+                14,
+            ],
+            [
+                """
+                let a = 1;
+                let newAdderOuter = fn(b) {
+                    fn(c) {
+                        fn(d) {a + b + c + d};
+                    };
+                };
+                let newAdderInner = newAdderOuter(2);
+                let adder = newAdderInner(3);
+                adder(8);
+                """,
+                14,
+            ],
+            [
+                """
+                let newClosure = fn(a, b) {
+                    let one = fn() { a; };
+                    let two = fn() { b; };
+                    fn() { one() + two() };
+                };
+                let closure = newClosure(9, 90);
+                closure();
+                """,
+                99,
+            ],
+            [
+                """
+                let countDown = fn(x) {
+                    if (x == 0) {
+                        return 0;
+                    }
+                    else {
+                        countDown(x - 1);
+                    }
+                };
+                countDown(1);
+                """,
+                0,
+            ],
+            [
+                """
+                let countdown = fn(x) {
+                    if (x == 0) {
+                        return 0;
+                    }
+                    else {
+                        countdown(x - 1);
+                    }
+                };
+                let wrapper = fn() {
+                    countdown(1);
+                }
+                wrapper();
+                """,
+                0,
+            ],
+            [
+                """
+                let wrapper = fn() {
+                    let countdown = fn(x) {
+                        if (x == 0) {
+                            return 0;
+                        }
+                        else {
+                            countdown(x - 1);
+                        }
+                    };
+                    countdown(1);
+                }
+                wrapper();
+                """,
+                0,
+            ],
+            [
+                """
+                let wrapperWrapper = fn() {
+                    let wrapper = fn() {
+                        let countdown = fn(x) {
+                            if (x == 0) {
+                                return 0;
+                            }
+                            else {
+                                countdown(x - 1);
+                            }
+                        };
+                        countdown(1);
+                    };
+                    wrapper();
+                }
+                wrapperWrapper();
+                """,
+                0,
+            ],
+        ]
+        for src_code, expected in tests:
+            self.verify_vm_case(src_code, expected)
+
+    def test_vm_fibonacci(self):
+        tests = [
+            [
+                """
+                let fibonacci = fn(x) {
+                    if (x == 0) {
+                        return 0;
+                    }
+                    else {
+                        if (x == 1) {
+                            return 1;
+                        }
+                        else {
+                            return fibonacci(x - 1) + fibonacci(x - 2);
+                        }
+                    }
+                }
+                fibonacci(15);
+                """,
+                610,
+            ],
         ]
         for src_code, expected in tests:
             self.verify_vm_case(src_code, expected)

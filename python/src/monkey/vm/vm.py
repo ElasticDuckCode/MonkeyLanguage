@@ -104,10 +104,12 @@ class VirtualMachine:
         self.stack[self.sp] = o
         self.sp += 1
 
-    def push_closure(self, idx: int) -> None:
+    def push_closure(self, idx: int, n_free: int) -> None:
         constant = self.constants[idx]
         fn = cast(obj.CompiledFunction, constant)
-        cl = obj.Closure(fn, [])
+        free: list[obj.Object] = self.stack[self.sp - n_free : self.sp]
+        self.sp -= n_free
+        cl = obj.Closure(fn, free)
         self.push(cl)
 
     def pop(self) -> obj.Object:
@@ -348,10 +350,18 @@ class VirtualMachine:
                         self.instructions[self.ip : self.ip + 2], "big"
                     )
                     self.ip += 2
-                    _ = int.from_bytes(self.instructions[self.ip : self.ip + 1], "big")
+                    n_free = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 1], "big"
+                    )
                     self.ip += 1
-                    self.push_closure(const_idx)
-
+                    self.push_closure(const_idx, n_free)
+                case code.OpCode.GetFree:
+                    free_idx = int.from_bytes(
+                        self.instructions[self.ip : self.ip + 1], "big"
+                    )
+                    self.ip += 1
+                    curr_closure = self.curr_frame.cl
+                    self.push(curr_closure.free[free_idx])
                 case _:
                     self._errors.append(new_error(f"unknown opcode: {op}"))
 

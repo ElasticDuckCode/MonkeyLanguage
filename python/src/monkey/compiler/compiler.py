@@ -116,8 +116,8 @@ class Compiler:
                 for stmt in node.statements:
                     self.compile(stmt)
             case ast.LetStatement():
-                self.compile(node.value)
                 sym = self.sym_table.define(node.name.value)
+                self.compile(node.value)
                 if sym.scope == symbols.GLOBAL_SCOPE:
                     self.emit(code.OpCode.SetGlobal, sym.index)
                 else:
@@ -180,7 +180,8 @@ class Compiler:
                 sym = self.sym_table.resolve(node.value)
                 if sym is None:
                     self.errors.append(new_error(f"unknown identifier: {node.value}"))
-                self.load_symbol(sym)
+                else:
+                    self.load_symbol(sym)
             case ast.BlockStatement():
                 for s in node.statements:
                     self.compile(s)
